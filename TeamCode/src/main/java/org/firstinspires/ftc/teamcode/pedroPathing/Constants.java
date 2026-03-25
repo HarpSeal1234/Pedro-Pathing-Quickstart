@@ -17,17 +17,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .forwardZeroPowerAcceleration(-31.6)
-            .lateralZeroPowerAcceleration(-69.36)
+            .lateralZeroPowerAcceleration(-62.15)
             .translationalPIDFCoefficients(new PIDFCoefficients(
-                    0.07,
+                    0.08,
                     0,
-                    0.002,
-                    0.02))
+                    0.001,
+                    0.03))
             .headingPIDFCoefficients(new PIDFCoefficients(
-                    0.45,
-                    0.01,
-                    0.002,
-                    0.04))
+                    0.5,
+                    0.0,
+                    0.001,
+                    0.025))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(
                     0.02,
                     0.0,
@@ -35,7 +35,7 @@ public class Constants {
                     0.6,
                     0.015))
             .centripetalScaling(0.0007)
-            .mass(15.15);
+            .mass(14.47);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
@@ -53,16 +53,16 @@ public class Constants {
             .rightRearMotorName("rr")
             .leftRearMotorName("lr")
             .leftFrontMotorName("lf")
-            .xVelocity(73.643)
-            .yVelocity(48.8)
+            .xVelocity(81.7)
+            .yVelocity(59)
             .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(3.66142)
-            .strafePodX(-6.61417)
+            .forwardPodY(-2.8)
+            .strafePodX(-6.75)
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("pinpoint")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
