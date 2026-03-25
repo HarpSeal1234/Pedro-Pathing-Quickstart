@@ -214,6 +214,36 @@ public class autoTele extends LinearOpMode {
             }
 
             if (aiming){
+                // 1. Goal Coordinates
+                double goalX = 0;
+                double goalY = 144;
+
+// 2. Calculate the absolute angle from the robot to the goal
+// Math.atan2(deltaY, deltaX)
+                double angleToGoal = Math.atan2(goalY - pose.getY(), goalX - pose.getX());
+
+// 3. Calculate the difference between the robot's face and the goal
+// This is the "Error" the turret needs to compensate for
+                double turretError = angleToGoal - heading;
+
+// 4. Normalize to shortest path (-PI to PI)
+// This prevents the turret from spinning 300 degrees when it only needs to move 10
+                while (turretError > Math.PI) turretError -= 2 * Math.PI;
+                while (turretError < -Math.PI) turretError += 2 * Math.PI;
+
+// 5. Convert error to degrees for your calibrated scale
+                double errorDegrees = Math.toDegrees(turretError);
+
+// 6. Map to your servo.
+// 0.5 is forward. Based on your data: 45 degrees = 0.148 change
+// Scale = 0.148 / 45 = 0.00328
+                turretPos = 0.5 + (errorDegrees * 0.00328);
+
+// 7. Apply limits and set position
+                turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
+            }
+            /*
+            if (aiming){
                 double goalX = 0;
                 double goalY = 144;
 
@@ -247,37 +277,8 @@ public class autoTele extends LinearOpMode {
 // --- APPLY LIMITS ---
                 turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
             }
-            /*
-            if (aiming) {
-                // 1. Goal Coordinates (Adjust for your side of the field)
-                double goalX = 0;
-                double goalY = 144;
 
-                // 3. Calculate Angle to Goal
-                double angleToGoal = Math.atan2(goalY - pose.getY(), goalX - pose.getX());
-
-                // 4. Calculate Turret Angle relative to Robot
-                double turretError = angleToGoal - heading;
-
-                // 3. Normalize to shortest path (-PI to PI)
-                while (turretError > Math.PI) turretError -= 2 * Math.PI;
-                while (turretError < -Math.PI) turretError += 2 * Math.PI;
-                // 6. Convert Radians to Degrees for easier mapping
-                double errorDegrees = Math.toDegrees(turretError);
-                turretPos = 0.5 + (errorDegrees * 0.0035);
-//                double turretServoPos = 0.5 + (degrees * 0.0035);
-//                turretPos = turretServoPos;
-                // 8. Apply your specific physical limits
-                // Right Limit: 0.28, Left Limit: 0.694
-//                turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
-            } else {
-                // Return to perfect center when not aiming
-//                turretServo.setPosition(0.5);
-                turretPos = 0.5;
-            }
-            turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
              */
-
             // INTAKE
             if (gamepad1.right_bumper) {
                 intake1Power = CLOSE_INTAKE_POWER;
