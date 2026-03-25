@@ -191,9 +191,11 @@ public class Tele extends LinearOpMode {
             outtake2.setVelocity(targetOuttakeVelocity);
 
             if (gamepad1.a){
-                turretPos = 0.317;
+//                turretPos = 0.317;
+                turretPos -= 0.001;
             } else if (gamepad1.b){
-                turretPos = 0.7;
+//                turretPos = 0.7;
+                turretPos += 0.001;
             }
             turretServo.setPosition(Range.clip(turretPos,0,1));
 
@@ -354,10 +356,10 @@ public class Tele extends LinearOpMode {
         rightBack = hardwareMap.get(DcMotor.class, "rr");
         leftBack = hardwareMap.get(DcMotor.class, "lr");
 
-        rightFront.setDirection(DcMotor.Direction.REVERSE);
-        leftFront.setDirection(DcMotor.Direction.FORWARD);
-        leftBack.setDirection(DcMotor.Direction.FORWARD);
-        rightBack.setDirection(DcMotor.Direction.REVERSE);
+        rightFront.setDirection(DcMotor.Direction.FORWARD);
+        leftFront.setDirection(DcMotor.Direction.REVERSE);
+        leftBack.setDirection(DcMotor.Direction.REVERSE);
+        rightBack.setDirection(DcMotor.Direction.FORWARD);
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
