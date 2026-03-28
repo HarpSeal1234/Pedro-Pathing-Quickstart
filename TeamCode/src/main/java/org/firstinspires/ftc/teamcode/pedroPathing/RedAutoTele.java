@@ -31,11 +31,18 @@ package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import static org.firstinspires.ftc.teamcode.CONSTANTS.CLOSE_INTAKE_POWER;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.CLOSE_OUTTAKE_VELOCITY;
-import static org.firstinspires.ftc.teamcode.CONSTANTS.DRIVE_POWER;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.FAR_OUTTAKE_VELOCITY;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.kD;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.kI;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.kP;
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.RED_GOAL_POSITION_X;
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.RED_GOAL_POSITION_Y;
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.MIN_SHOOT_DISTANCE;
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.MAX_TURRET_ANGLE;
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.OUTTAKE_SPEED_THRESHOLD;
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.isInLaunchZone;
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.isInNearLaunchZone;
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.isInFarLaunchZone;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -70,8 +77,8 @@ import java.util.List;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Auto Tele", group="! Linear OpMode")
-public class autoTele extends LinearOpMode {
+@TeleOp(name="Red Auto Tele", group="! Linear OpMode")
+public class RedAutoTele extends LinearOpMode {
 //    Pose2d initialPose = new Pose2d(0, 0, Math.toRadians(0));
 
     // Declare OpMode members.
@@ -120,6 +127,21 @@ public class autoTele extends LinearOpMode {
 
     private double position = 5.0;
     private double turretPos = 0.5;
+    private double robotX = 0.0;
+    private double robotY = 0.0;
+    private double robotHeading = 0.0;
+    private double robotToGoalDistance = 0.0;
+    private double errorDegrees = 0.0;
+    private double angleToGoal = 0.0;
+    private static final double turretScale = 0.148 / 90.0 ;
+    private boolean inLaunchZone = false;
+    private boolean inNearLaunchZone = false;
+    private boolean inFarLaunchZone = false;
+    private boolean shooting = false;
+    private boolean shootingCompleted = false;
+    private boolean outtakeReady = false;
+    private ElapsedTime shootTimer = new ElapsedTime();
+    private static final double SHOOT_DURATION_MS = 2000;
 
     boolean intake1On = false;
     double intake1Vel = 0.0;
@@ -139,6 +161,13 @@ public class autoTele extends LinearOpMode {
 
         initHardware();
         follower = Constants.createFollower(hardwareMap);
+
+        // Set drive motors to BRAKE mode after follower init (follower may reset them)
+        hardwareMap.get(DcMotor.class, "rf").setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hardwareMap.get(DcMotor.class, "lf").setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hardwareMap.get(DcMotor.class, "rr").setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hardwareMap.get(DcMotor.class, "lr").setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         startingPose = new Pose(72,72,Math.toRadians(90));
         boolean aiming = false;
         follower.setStartingPose(startingPose); // Or your last Auto pose
@@ -155,14 +184,27 @@ public class autoTele extends LinearOpMode {
         while (opModeIsActive()) {
             follower.update();
 
-            Pose pose = follower.getPose();
-            double heading = pose.getHeading(); // Radians
+            // Reset intake2 power each loop — only set if a button or auto-shoot activates it
+            intake2Power = 0;
 
-            //drive
-            double y = -gamepad1.left_stick_y; // Remember, Y stick is reversed!
-            double x = gamepad1.left_stick_x;
-            double rx = -gamepad1.right_stick_x;
-            follower.setTeleOpDrive(y,-x,rx);
+            // intake1 is always on
+            intake1Power = CLOSE_INTAKE_POWER;
+
+            Pose pose = follower.getPose();
+            robotHeading = pose.getHeading(); // Radians
+            inNearLaunchZone = isInNearLaunchZone(pose.getX(), pose.getY());
+            inFarLaunchZone = isInFarLaunchZone(pose.getX(), pose.getY());
+            inLaunchZone = inNearLaunchZone || inFarLaunchZone;
+
+            //drive — freeze robot when actively shooting to avoid missing the goal
+            if (shooting && outtakeReady) {
+                follower.setTeleOpDrive(0, 0, 0);
+            } else {
+                double y = -gamepad1.left_stick_y; // Remember, Y stick is reversed!
+                double x = gamepad1.left_stick_x;
+                double rx = -gamepad1.right_stick_x;
+                follower.setTeleOpDrive(y, -x, rx);
+            }
 //            double leftFrontPower = Range.clip((y + x + rx),-DRIVE_POWER,DRIVE_POWER);
 //            double leftBackPower = Range.clip((y - x + rx),-DRIVE_POWER,DRIVE_POWER);
 //            double rightFrontPower = Range.clip((y - x - rx),-DRIVE_POWER,DRIVE_POWER);
@@ -175,7 +217,26 @@ public class autoTele extends LinearOpMode {
 //            rightBack.setPower(rightBackPower);
 
 
-            // OUTTAKE
+            // AIMING — only track the goal when robot is in launch zone
+            robotX = pose.getX();
+            robotY = pose.getY();
+            if (inLaunchZone) {
+                angleToGoal = Math.atan2(robotX - RED_GOAL_POSITION_X, RED_GOAL_POSITION_Y - robotY) + Math.PI / 2;
+
+                double turretError = angleToGoal - robotHeading;
+                while (turretError > Math.PI) turretError -= 2 * Math.PI;
+                while (turretError < -Math.PI) turretError += 2 * Math.PI;
+
+                errorDegrees = Math.toDegrees(turretError);
+
+                // Clamp turret angle to ±135° to prevent over-rotation
+                errorDegrees = Range.clip(errorDegrees, -MAX_TURRET_ANGLE, MAX_TURRET_ANGLE);
+
+                turretPos = 0.5 + (errorDegrees * turretScale);
+                turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
+            }
+
+            // OUTTAKE — manual overrides
             if(gamepad2.left_bumper) {
                 targetOuttakeVelocity = FAR_OUTTAKE_VELOCITY;
                 autoUpdate = false;
@@ -189,59 +250,41 @@ public class autoTele extends LinearOpMode {
                 autoUpdate = true;
                 velocityTimer.reset();
             }
-            outtake1.setVelocity(targetOuttakeVelocity);
-            outtake2.setVelocity(targetOuttakeVelocity);
 
-            if (autoUpdate) {
+            // In launch zone → start shooting with 2-second timer (only if far enough from goal)
+            double distanceToGoal = getRobotToGoalDistance();
+            boolean canShoot = inLaunchZone && distanceToGoal >= MIN_SHOOT_DISTANCE;
+
+            // Auto-update velocity based on distance (only when autoUpdate or canShoot)
+            if (canShoot || autoUpdate) {
                 targetv = Range.clip(
-                        (400.0 / (130 - 45)) * (getRobotToGoalDistance() - 45) + 1600,
+                        (400.0 / (130 - 45)) * (distanceToGoal - 45) + 1600,
                         1000,
                         FAR_OUTTAKE_VELOCITY
                 );
                 targetOuttakeVelocity = targetv;
             }
 
-//            if (gamepad1.a){
-//                turretPos = 0.317;
-//            } else if (gamepad1.b){
-//                turretPos = 0.7;
-//            }
-
-            if (gamepad1.right_trigger > 0.3) {
-                aiming = true;
-            } else {
-                aiming = false;
+            if (canShoot && !shooting && !shootingCompleted) {
+                // Just entered shootable range — begin spin-up phase
+                shooting = true;
+                outtakeReady = false;
+            } else if (!canShoot && shooting) {
+                // Was shooting but now too close or left launch zone — stop everything
+                shooting = false;
+                shootingCompleted = false;
+                outtakeReady = false;
+                intake1Power = 0;
+                intake2Power = 0;
+                intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
+            } else if (!canShoot) {
+                // Not in shootable range — reset so we can shoot again next time
+                shootingCompleted = false;
             }
 
-            if (aiming){
-                // 1. Goal Coordinates
-                double goalX = 0;
-                double goalY = 144;
 
-// 2. Calculate the absolute angle from the robot to the goal
-// Math.atan2(deltaY, deltaX)
-                double angleToGoal = Math.atan2(goalY - pose.getY(), goalX - pose.getX());
-
-// 3. Calculate the difference between the robot's face and the goal
-// This is the "Error" the turret needs to compensate for
-                double turretError = angleToGoal - heading;
-
-// 4. Normalize to shortest path (-PI to PI)
-// This prevents the turret from spinning 300 degrees when it only needs to move 10
-                while (turretError > Math.PI) turretError -= 2 * Math.PI;
-                while (turretError < -Math.PI) turretError += 2 * Math.PI;
-
-// 5. Convert error to degrees for your calibrated scale
-                double errorDegrees = Math.toDegrees(turretError);
-
-// 6. Map to your servo.
-// 0.5 is forward. Based on your data: 45 degrees = 0.148 change
-// Scale = 0.148 / 45 = 0.00328
-                turretPos = 0.5 + (errorDegrees * 0.00328);
-
-// 7. Apply limits and set position
-                turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
-            }
+            outtake1.setVelocity(targetOuttakeVelocity);
+            outtake2.setVelocity(targetOuttakeVelocity);
             /*
             if (aiming){
                 double goalX = 0;
@@ -279,7 +322,7 @@ public class autoTele extends LinearOpMode {
             }
 
              */
-            // INTAKE
+            // INTAKE — manual controls
             if (gamepad1.right_bumper) {
                 intake1Power = CLOSE_INTAKE_POWER;
                 intakeStatus = INTAKE_STATUS.INTAKE_STARTED;
@@ -299,6 +342,39 @@ public class autoTele extends LinearOpMode {
                 intake2Power = 0.0;
                 intake1Power = 0;
                 intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
+            }
+
+            // Auto-shoot overrides manual intake when shooting
+            if (shooting) {
+                intake1Power = CLOSE_INTAKE_POWER;
+                intakeStatus = INTAKE_STATUS.INTAKE_STARTED;
+
+                double currentOuttakeVelocity = Math.min(outtake1.getVelocity(), outtake2.getVelocity());
+                boolean outtakeAtSpeed = targetOuttakeVelocity > 0
+                        && currentOuttakeVelocity >= targetOuttakeVelocity * OUTTAKE_SPEED_THRESHOLD;
+
+                if (!outtakeReady && outtakeAtSpeed) {
+                    // Outtake just reached target speed — NOW start the 2-second feed timer
+                    outtakeReady = true;
+                    shootTimer.reset();
+                }
+
+                if (outtakeReady && shootTimer.milliseconds() < SHOOT_DURATION_MS) {
+                    // Outtake is up to speed and within 2-second feed window
+                    intake2Power = 1.0;
+                } else if (outtakeReady) {
+                    // 2 seconds of feeding elapsed — stop
+                    intake1Power = 0;
+                    intake2Power = 0;
+                    intake2.setPower(0);
+                    intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
+                    shooting = false;
+                    outtakeReady = false;
+                    shootingCompleted = true;
+                } else {
+                    // Still waiting for outtake to spin up — don't feed yet
+                    intake2Power = 0;
+                }
             }
 
             intake1Vel = intake1.getVelocity();
@@ -457,12 +533,10 @@ public class autoTele extends LinearOpMode {
      */
 
     public double getRobotToGoalDistance() {
-        double goalX = 0;
-        double goalY = 144;
         Pose pose = follower.getPose();
 
-        double dx = goalX - pose.getX();
-        double dy = goalY - pose.getY();
+        double dx = RED_GOAL_POSITION_X - pose.getX();
+        double dy = RED_GOAL_POSITION_Y - pose.getY();
 
         // Pythagorean theorem: distance = sqrt(dx^2 + dy^2)
         return Math.sqrt(dx * dx + dy * dy);
@@ -508,6 +582,11 @@ public class autoTele extends LinearOpMode {
 
     public void telemetry() {
         telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("robotX", robotX);
+        telemetry.addData("robotY", robotY);
+        telemetry.addData("robotHeading", Math.toDegrees(robotHeading));
+        telemetry.addData("errorDegrees", errorDegrees);
+        telemetry.addData("angleToGoal", Math.toDegrees(angleToGoal));
         telemetry.addData("turretpos",turretPos);
         telemetry.addData("Intake Power", "Intake Power: " + intake1Power);
         telemetry.addData("Target Velocity", targetOuttakeVelocity);
@@ -519,6 +598,13 @@ public class autoTele extends LinearOpMode {
         telemetry.addData("Outtake 1 Velocity", outtake1.getVelocity());
         telemetry.addData("Outtake 2 Velocity", outtake2.getVelocity());
         telemetry.addData("blocker", turretPos);
+        telemetry.addData("In Launch Zone", inLaunchZone);
+        telemetry.addData("Near Launch Zone", inNearLaunchZone);
+        telemetry.addData("Far Launch Zone", inFarLaunchZone);
+        telemetry.addData("Distance to Goal", getRobotToGoalDistance());
+        telemetry.addData("Shooting", shooting);
+        telemetry.addData("Shooting Completed", shootingCompleted);
+        telemetry.addData("Shoot Timer (ms)", shootTimer.milliseconds());
     }
 }
 
