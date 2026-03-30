@@ -29,10 +29,16 @@
 
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import static org.firstinspires.ftc.teamcode.CONSTANTS.BLUE_GOAL_POSITION_X;
+import static org.firstinspires.ftc.teamcode.CONSTANTS.BLUE_GOAL_POSITION_Y;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.CLOSE_INTAKE_POWER;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.CLOSE_OUTTAKE_VELOCITY;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.DRIVE_POWER;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.FAR_OUTTAKE_VELOCITY;
+import static org.firstinspires.ftc.teamcode.CONSTANTS.HOOD_MAX_POS;
+import static org.firstinspires.ftc.teamcode.CONSTANTS.HOOD_MIN_POS;
+import static org.firstinspires.ftc.teamcode.CONSTANTS.MAX_TURRET_ANGLE;
+import static org.firstinspires.ftc.teamcode.CONSTANTS.TURRET_POSITION_PER_DEGREE;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.kD;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.kI;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.kP;
@@ -120,6 +126,7 @@ public class autoTele extends LinearOpMode {
 
     private double position = 5.0;
     private double turretPos = 0.5;
+    private double hoodPos = 0.5;
 
     boolean intake1On = false;
     double intake1Vel = 0.0;
@@ -194,91 +201,39 @@ public class autoTele extends LinearOpMode {
 
             if (autoUpdate) {
                 targetv = Range.clip(
-                        (400.0 / (130 - 45)) * (getRobotToGoalDistance() - 45) + 1600,
+                        (500.0 / (130 - 45)) * (getRobotToGoalDistance() - 45) + 1500,
                         1000,
                         FAR_OUTTAKE_VELOCITY
                 );
                 targetOuttakeVelocity = targetv;
             }
 
-//            if (gamepad1.a){
-//                turretPos = 0.317;
-//            } else if (gamepad1.b){
-//                turretPos = 0.7;
-//            }
-
             if (gamepad1.right_trigger > 0.3) {
                 aiming = true;
-            } else {
+            } if (gamepad1.left_trigger > 0.3) {
                 aiming = false;
             }
 
             if (aiming){
                 // 1. Goal Coordinates
-                double goalX = 0;
-                double goalY = 144;
+                double robotX = pose.getX();
+                double robotY = pose.getY();
+                double robotHeading = pose.getHeading();
+                double angleToGoal = Math.atan2(robotX - BLUE_GOAL_POSITION_X, BLUE_GOAL_POSITION_Y - robotY) + Math.PI / 2;
 
-// 2. Calculate the absolute angle from the robot to the goal
-// Math.atan2(deltaY, deltaX)
-                double angleToGoal = Math.atan2(goalY - pose.getY(), goalX - pose.getX());
-
-// 3. Calculate the difference between the robot's face and the goal
-// This is the "Error" the turret needs to compensate for
-                double turretError = angleToGoal - heading;
-
-// 4. Normalize to shortest path (-PI to PI)
-// This prevents the turret from spinning 300 degrees when it only needs to move 10
+                double turretError = angleToGoal - robotHeading;
                 while (turretError > Math.PI) turretError -= 2 * Math.PI;
                 while (turretError < -Math.PI) turretError += 2 * Math.PI;
 
-// 5. Convert error to degrees for your calibrated scale
                 double errorDegrees = Math.toDegrees(turretError);
 
-// 6. Map to your servo.
-// 0.5 is forward. Based on your data: 45 degrees = 0.148 change
-// Scale = 0.148 / 45 = 0.00328
-                turretPos = 0.5 + (errorDegrees * 0.00328);
+// Clamp turret angle to ±135° to prevent over-rotation
+                errorDegrees = Range.clip(errorDegrees, -MAX_TURRET_ANGLE, MAX_TURRET_ANGLE);
 
-// 7. Apply limits and set position
-                turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
-            }
-            /*
-            if (aiming){
-                double goalX = 0;
-                double goalY = 144;
-
-                // --- CURRENT POSE ---
-                 pose = follower.getPose();
-                 heading = pose.getHeading();
-
-// --- VECTOR FROM ROBOT TO GOAL (FIELD FRAME) ---
-                double dx = goalX - pose.getX();
-                double dy = goalY - pose.getY();
-
-// --- CONVERT TO ROBOT FRAME ---
-                double cos = Math.cos(-heading);
-                double sin = Math.sin(-heading);
-
-                double robotX = dx * cos - dy * sin;
-                double robotY = dx * sin + dy * cos;
-// --- ANGLE TURRET NEEDS TO TURN (RELATIVE TO ROBOT) ---
-                double turretAngle = Math.atan2(robotY, robotX);
-
-// --- CONVERT TO DEGREES ---
-                double errorDeg = Math.toDegrees(turretAngle);
-
-// --- SCALE (based on your calibration: ~90° ≈ 0.148 servo change) ---
-                double scale = 0.00187;
-
-// --- CONVERT TO SERVO POSITION ---
-// try this first:
-                turretPos = 0.5 - (errorDeg * scale);
-
-// --- APPLY LIMITS ---
+                turretPos = 0.5 + (errorDegrees * TURRET_POSITION_PER_DEGREE);
                 turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
             }
 
-             */
             // INTAKE
             if (gamepad1.right_bumper) {
                 intake1Power = CLOSE_INTAKE_POWER;
@@ -300,6 +255,15 @@ public class autoTele extends LinearOpMode {
                 intake1Power = 0;
                 intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
             }
+
+            if (gamepad1.dpad_up){
+                hoodPos = 0.7;
+            } else if (gamepad1.dpad_down){
+                hoodPos = 0.2;
+            }
+            hoodServo.setPosition(Range.clip(hoodPos,HOOD_MIN_POS,HOOD_MAX_POS));
+
+
 
             intake1Vel = intake1.getVelocity();
 
@@ -337,6 +301,7 @@ public class autoTele extends LinearOpMode {
         initAprilTag();
 //        initCamera();
         initIntake();
+        initTurret();
     }
     private void initAprilTag() {
 
@@ -429,9 +394,14 @@ public class autoTele extends LinearOpMode {
         intake2 = hardwareMap.get(DcMotor.class,"intake2");
         intake2.setDirection(DcMotorSimple.Direction.FORWARD);
         intake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
 
+    private void initTurret(){
         turretServo = hardwareMap.get(Servo.class,"turretServo");
         turretServo.setPosition(Range.clip(turretPos,0,1));
+
+        hoodServo = hardwareMap.get(Servo.class,"hoodServo");
+        hoodServo.setPosition(Range.clip(hoodPos,0,1));
     }
     private void initCamera(){
 //        limelight3A = hardwareMap.get(Limelight3A.class,"limelight3A");
@@ -457,12 +427,10 @@ public class autoTele extends LinearOpMode {
      */
 
     public double getRobotToGoalDistance() {
-        double goalX = 0;
-        double goalY = 144;
         Pose pose = follower.getPose();
 
-        double dx = goalX - pose.getX();
-        double dy = goalY - pose.getY();
+        double dx = BLUE_GOAL_POSITION_X - pose.getX();
+        double dy = BLUE_GOAL_POSITION_Y - pose.getY();
 
         // Pythagorean theorem: distance = sqrt(dx^2 + dy^2)
         return Math.sqrt(dx * dx + dy * dy);
@@ -508,7 +476,9 @@ public class autoTele extends LinearOpMode {
 
     public void telemetry() {
         telemetry.addData("Status", "Run Time: " + runtime.toString());
+//        telemetry.addData("")
         telemetry.addData("turretpos",turretPos);
+        telemetry.addData("hood",hoodPos);
         telemetry.addData("Intake Power", "Intake Power: " + intake1Power);
         telemetry.addData("Target Velocity", targetOuttakeVelocity);
         telemetry.addData("Intake state", intakeStatus);
