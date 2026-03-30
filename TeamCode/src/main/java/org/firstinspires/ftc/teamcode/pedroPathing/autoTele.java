@@ -208,6 +208,12 @@ public class autoTele extends LinearOpMode {
                 targetOuttakeVelocity = targetv;
             }
 
+            if (targetOuttakeVelocity < 1800) {
+                hoodPos = 0.7;
+            } else if (targetOuttakeVelocity >= 1800) {
+                hoodPos = 0.18;
+            }
+
             if (gamepad1.right_trigger > 0.3) {
                 aiming = true;
             } if (gamepad1.left_trigger > 0.3) {
@@ -256,11 +262,11 @@ public class autoTele extends LinearOpMode {
                 intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
             }
 
-            if (gamepad1.dpad_up){
-                hoodPos = 0.7;
-            } else if (gamepad1.dpad_down){
-                hoodPos = 0.2;
-            }
+//            if (gamepad1.dpad_up){
+//                hoodPos = 0.7;
+//            } else if (gamepad1.dpad_down){
+//                hoodPos = 0.2;
+//            }
             hoodServo.setPosition(Range.clip(hoodPos,HOOD_MIN_POS,HOOD_MAX_POS));
 
 
