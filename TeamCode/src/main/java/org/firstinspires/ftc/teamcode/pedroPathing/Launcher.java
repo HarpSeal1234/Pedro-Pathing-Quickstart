@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import static org.firstinspires.ftc.teamcode.CONSTANTS.HOOD_MAX_POS;
+import static org.firstinspires.ftc.teamcode.CONSTANTS.HOOD_MIN_POS;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -13,9 +16,8 @@ public class Launcher {
     public enum LauncherState {
         START_LAUNCHING_NEAR,
         START_LAUNCHING_FAR,
-        LAUNCH_BLUE_NEAR,
-        LAUNCH_BLUE_FAR,
         LAUNCH,
+        LAUNCH_BLUE_FAR,
         IDLE,
         PICKUP
     }
@@ -26,6 +28,7 @@ public class Launcher {
     private DcMotor intake1;
     private DcMotor intake2;
     private Servo turretServo = null;
+    private Servo hoodServo = null;
     private Timer stateTimer = new Timer();
     private Timer launchTimer = new Timer();
     public final static double JR_OUTTAKE_BLOCK = 0.78;
@@ -57,6 +60,8 @@ public class Launcher {
         intake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         turretServo = hardwareMap.get(Servo.class,"turretServo");
+
+        hoodServo = hardwareMap.get(Servo.class,"hoodServo");
     }
 
     public void setState(LauncherState state) {
@@ -71,21 +76,18 @@ public class Launcher {
                 outtake2.setVelocity(1600);
                 intake1.setPower(0);
                 intake2.setPower(0);
-                turretServo.setPosition(Range.clip(0.427, 0.28, 0.694));
+                turretServo.setPosition(Range.clip(0.416, 0.28, 0.694)); // 0.422
+                hoodServo.setPosition(Range.clip(0.5,HOOD_MIN_POS,HOOD_MAX_POS));
                 break;
             case START_LAUNCHING_FAR:
                 outtake1.setVelocity(2000);
                 outtake2.setVelocity(2000);
                 intake1.setPower(0);
                 intake2.setPower(0);
-                if (stateTimer.getElapsedTime() > 200){
-                    setState(LauncherState.LAUNCH);
-                }
-            case LAUNCH_BLUE_NEAR:
-                intake1.setPower(1);
-                intake2.setPower(1);
+                turretServo.setPosition(Range.clip(0.531, 0.28, 0.694)); // 0.422
+                hoodServo.setPosition(Range.clip(0.7,HOOD_MIN_POS,HOOD_MAX_POS));
                 break;
-            case LAUNCH_BLUE_FAR:
+            case LAUNCH:
                 intake1.setPower(1);
                 intake2.setPower(1);
                 break;

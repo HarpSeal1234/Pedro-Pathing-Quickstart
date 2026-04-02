@@ -20,8 +20,8 @@ public class CONSTANTS {
     public static final double ROBOT_HALF_WIDTH = ROBOT_WIDTH_INCHES / 2.0;
     public static final double RED_GOAL_POSITION_X = 136; // 144 - 8
     public static final double RED_GOAL_POSITION_Y = 136; // 144 - 8
-    public final static double BLUE_GOAL_POSITION_X = 8;
-    public final static double BLUE_GOAL_POSITION_Y = 138;
+    public final static double BLUE_GOAL_POSITION_X = 5;
+    public final static double BLUE_GOAL_POSITION_Y = 139;
     // Maximum turret rotation in degrees (left or right from center)
     public static final double MAX_TURRET_ANGLE = 135;
     public static final double TURRET_POSITION_PER_DEGREE =0.0017777777777777779;

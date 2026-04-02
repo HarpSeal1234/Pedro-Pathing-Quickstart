@@ -7,11 +7,10 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 //@Disabled
-@Autonomous(name = "Visualizer Auto", group = "Examples")
-public class AutoW_Visualizer extends OpMode {
+@Autonomous(name = "Blue Close Auto", group = "Examples")
+public class BlueCloseAuto extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer,waitTimer;
@@ -21,19 +20,19 @@ public class AutoW_Visualizer extends OpMode {
     private double pickupSpeed = 0.8;
 
     private Launcher launcher;
-    private final Pose startPose = new Pose(22.6, 113.5, Math.toRadians(180)); // Start Pose of our robot.
-    private final Pose scorePose1 = new Pose(51.25, 84, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose pickup1PoseStart = new Pose(39, 60, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose pickup1PoseEnd = new Pose(13, 60, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose scorePose2 = new Pose(51.25, 84, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose openGateGrabPose = new Pose(12, 58, Math.toRadians(145)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose scorePose3 = new Pose(51.25, 84, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose pickup2PoseStart = new Pose(39, 81, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2PoseEnd = new Pose(19, 81, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose scorePose4 = new Pose(51.25, 84, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose openGateGrabPose2 = new Pose(12, 58, Math.toRadians(145)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose scorePose5 = new Pose(51.25, 84, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose leavePose = new Pose(25, 99, Math.toRadians(138.5)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose startPose = new Pose(15.5, 112.5, Math.toRadians(180)); // Start Pose of our robot.
+    private final Pose scorePose1 = new Pose(57, 86, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose pickup1PoseStart = new Pose(40, 61, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose pickup1PoseEnd = new Pose(17, 61, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose scorePose2 = new Pose(57, 81, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose openGateGrabPose = new Pose(11.5, 62, Math.toRadians(145)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose scorePose3 = new Pose(57, 83, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose pickup2PoseStart = new Pose(40, 82, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose pickup2PoseEnd = new Pose(19, 82, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose scorePose4 = new Pose(57, 83, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose openGateGrabPose2 = new Pose(11.5, 60.5, Math.toRadians(145)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose scorePose5 = new Pose(57, 83, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose leavePose = new Pose(36, 108, Math.toRadians(180))  ; // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
 
 
     private PathChain
@@ -67,7 +66,6 @@ public class AutoW_Visualizer extends OpMode {
                 .addPath(new BezierCurve(pickup1PoseEnd,new Pose(54,54),scorePose2))
                 .setLinearHeadingInterpolation(pickup1PoseEnd.getHeading(), scorePose2.getHeading())
                 .build();
-
         openGateGrab = follower.pathBuilder()
                 .addPath(new BezierCurve(scorePose2,new Pose(48,62), openGateGrabPose))
                 .setLinearHeadingInterpolation(scorePose2.getHeading(), openGateGrabPose.getHeading())
@@ -92,8 +90,8 @@ public class AutoW_Visualizer extends OpMode {
                 .setLinearHeadingInterpolation(scorePose4.getHeading(), openGateGrabPose2.getHeading())
                 .build();
         score5 = follower.pathBuilder()
-                .addPath(new BezierCurve(openGateGrabPose,new Pose(51,93),scorePose5))
-                .setLinearHeadingInterpolation(openGateGrabPose.getHeading(), scorePose5.getHeading())
+                .addPath(new BezierCurve(openGateGrabPose2,new Pose(51,93),scorePose5))
+                .setLinearHeadingInterpolation(openGateGrabPose2.getHeading(), scorePose5.getHeading())
                 .build();
         leave = follower.pathBuilder()
                 .addPath(new BezierCurve(scorePose5,new Pose(37,87),leavePose))
@@ -112,7 +110,7 @@ public class AutoW_Visualizer extends OpMode {
             case 1: // Wait until arrived at score1, then LAUNCH
                 if (!follower.isBusy()) {
                     if (actionTimer.getElapsedTime() > 500) {
-                        launcher.setState(Launcher.LauncherState.LAUNCH_BLUE_NEAR);
+                        launcher.setState(Launcher.LauncherState.LAUNCH);
                         setPathState(101);
                     }
                 }
@@ -143,7 +141,7 @@ public class AutoW_Visualizer extends OpMode {
 
             case 4: // Arrived at score 2? Now LAUNCH.
                 if (!follower.isBusy()) {
-                    launcher.setState(Launcher.LauncherState.LAUNCH_BLUE_NEAR);
+                    launcher.setState(Launcher.LauncherState.LAUNCH);
                     setPathState(401);
                 }
                 break;
@@ -151,7 +149,7 @@ public class AutoW_Visualizer extends OpMode {
             case 401:
                 if (!follower.isBusy()){
                     if (actionTimer.getElapsedTime() > launchTime) {
-                        follower.followPath(openGateGrab, 0.5, true);
+                        follower.followPath(openGateGrab, 0.8, true);
                         launcher.setState(Launcher.LauncherState.PICKUP);
 //                        launcher.setState(Launcher.LauncherState.IDLE);
                         setPathState(5);
@@ -176,7 +174,7 @@ public class AutoW_Visualizer extends OpMode {
 
             case 6: // Wait until robot finishes pickup1, then move to score 2
                 if (!follower.isBusy()) {
-                    launcher.setState(Launcher.LauncherState.LAUNCH_BLUE_NEAR);
+                    launcher.setState(Launcher.LauncherState.LAUNCH);
                     setPathState(601);
                 }
                 break;
@@ -206,7 +204,7 @@ public class AutoW_Visualizer extends OpMode {
 
             case 9: // Wait until robot finishes pickup1, then move to score 2
                 if (!follower.isBusy()) {
-                    launcher.setState(Launcher.LauncherState.LAUNCH_BLUE_NEAR);
+                    launcher.setState(Launcher.LauncherState.LAUNCH);
                     if (actionTimer.getElapsedTime() > launchTime) {
                         setPathState(10);
                     }
@@ -216,7 +214,7 @@ public class AutoW_Visualizer extends OpMode {
             case 10:
                 if (!follower.isBusy()){
                     if (actionTimer.getElapsedTime() > launchTime) {
-                        follower.followPath(openGateGrab2, 0.7, true);
+                        follower.followPath(openGateGrab2, 0.6, true);
                         launcher.setState(Launcher.LauncherState.PICKUP);
 //                        launcher.setState(Launcher.LauncherState.IDLE);
                         setPathState(1001);
@@ -235,7 +233,7 @@ public class AutoW_Visualizer extends OpMode {
 
             case 11: // Wait until robot finishes pickup1, then move to score 2
                 if (!follower.isBusy()) {
-                    launcher.setState(Launcher.LauncherState.LAUNCH_BLUE_NEAR);
+                    launcher.setState(Launcher.LauncherState.LAUNCH);
                     setPathState(1101);
                 }
                 break;

@@ -146,7 +146,8 @@ public class autoTele extends LinearOpMode {
 
         initHardware();
         follower = Constants.createFollower(hardwareMap);
-        startingPose = new Pose(72,72,Math.toRadians(90));
+//        startingPose = new Pose(72,72,Math.toRadians(90));
+        startingPose = new Pose(15.5, 112.5, Math.toRadians(180));
         boolean aiming = false;
         follower.setStartingPose(startingPose); // Or your last Auto pose
         follower.startTeleopDrive();
@@ -208,11 +209,7 @@ public class autoTele extends LinearOpMode {
                 targetOuttakeVelocity = targetv;
             }
 
-            if (targetOuttakeVelocity < 1800) {
-                hoodPos = 0.7;
-            } else if (targetOuttakeVelocity >= 1800) {
-                hoodPos = 0.18;
-            }
+
 
             if (gamepad1.right_trigger > 0.3) {
                 aiming = true;
@@ -262,11 +259,19 @@ public class autoTele extends LinearOpMode {
                 intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
             }
 
-//            if (gamepad1.dpad_up){
-//                hoodPos = 0.7;
-//            } else if (gamepad1.dpad_down){
-//                hoodPos = 0.2;
-//            }
+            if (gamepad1.dpad_up){
+                hoodPos = 0.7;
+            } else if (gamepad1.dpad_down){
+                hoodPos = 0.2;
+            }
+
+            /*
+            if (targetOuttakeVelocity < 1800) {
+                hoodPos = 0.7;
+            } else if (targetOuttakeVelocity >= 1800) {
+                hoodPos = 0.18;
+            }
+             */
             hoodServo.setPosition(Range.clip(hoodPos,HOOD_MIN_POS,HOOD_MAX_POS));
 
 
