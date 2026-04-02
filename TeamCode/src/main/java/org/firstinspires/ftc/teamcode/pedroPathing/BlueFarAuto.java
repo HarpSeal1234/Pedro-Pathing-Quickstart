@@ -22,80 +22,57 @@ public class BlueFarAuto extends OpMode {
 
     private Launcher launcher;
     private final Pose startPose = new Pose(55.8, 7.5, Math.toRadians(180)); // Start Pose of our robot.
-    private final Pose scorePose1 = new Pose(57, 86, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose pickup1PoseStart = new Pose(40, 61, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose pickup1PoseEnd = new Pose(17, 61, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose scorePose2 = new Pose(57, 81, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose openGateGrabPose = new Pose(11.5, 62, Math.toRadians(145)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose scorePose3 = new Pose(57, 83, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose pickup2PoseStart = new Pose(40, 82, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2PoseEnd = new Pose(19, 82, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose scorePose4 = new Pose(57, 83, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose openGateGrabPose2 = new Pose(11.5, 60.5, Math.toRadians(145)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose scorePose5 = new Pose(57, 83, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose leavePose = new Pose(36, 108, Math.toRadians(180))  ; // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose pickup1PoseStart = new Pose(36, 36, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose pickup1PoseEnd = new Pose(14, 36, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose scorePose2 = new Pose(55.8, 81, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose pickup2PoseStart = new Pose(11, 10, Math.toRadians(190)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose scorePose3 = new Pose(55.8, 81, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose pickup3PoseStart = new Pose(11, 10, Math.toRadians(190)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose scorePose5 = new Pose(55.8, 81, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose leavePose = new Pose(44, 25, Math.toRadians(180))  ; // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
 
 
     private PathChain
-            score1,
             pickup1,
             pickup1Path,
             score2,
-            openGateGrab,
-            score3,
             pickup2,
-            pickup2Path,
+            score3,
+            pickup3,
             score4,
-            openGateGrab2,
-            score5,
             leave;
 
     public void buildPaths() {
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
-        score1 = follower.pathBuilder()
-                .addPath(new BezierLine(startPose, scorePose1))
-                .setLinearHeadingInterpolation(startPose.getHeading(), scorePose1.getHeading())
-                .build();
         pickup1 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose1,new Pose(56,64),pickup1PoseStart))
-                .setLinearHeadingInterpolation(scorePose1.getHeading(), pickup1PoseStart.getHeading())
+                .addPath(new BezierCurve(startPose,new Pose(56,26),pickup1PoseStart))
+                .setLinearHeadingInterpolation(startPose.getHeading(), pickup1PoseStart.getHeading())
                 .build();
         pickup1Path  = follower.pathBuilder()
                 .addPath(new BezierLine(pickup1PoseStart, pickup1PoseEnd))
                 .build();
         score2 = follower.pathBuilder()
-                .addPath(new BezierCurve(pickup1PoseEnd,new Pose(54,54),scorePose2))
+                .addPath(new BezierCurve(pickup1PoseEnd,new Pose(48,38),scorePose2))
                 .setLinearHeadingInterpolation(pickup1PoseEnd.getHeading(), scorePose2.getHeading())
                 .build();
-        openGateGrab = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose2,new Pose(48,62), openGateGrabPose))
-                .setLinearHeadingInterpolation(scorePose2.getHeading(), openGateGrabPose.getHeading())
+        pickup2 = follower.pathBuilder()
+                .addPath(new BezierCurve(scorePose2,new Pose(38,20),pickup2PoseStart))
+                .setLinearHeadingInterpolation(scorePose2.getHeading(), pickup2PoseStart.getHeading())
                 .build();
         score3 = follower.pathBuilder()
-                .addPath(new BezierCurve(openGateGrabPose,new Pose(51,54), scorePose3))
-                .setLinearHeadingInterpolation(openGateGrabPose.getHeading(), scorePose3.getHeading())
+                .addPath(new BezierCurve(pickup2PoseStart,new Pose(29,21), scorePose3))
+                .setLinearHeadingInterpolation(pickup2PoseStart.getHeading(), scorePose3.getHeading())
                 .build();
-        pickup2 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose3,new Pose(47,83),pickup2PoseStart))
-                .setLinearHeadingInterpolation(scorePose3.getHeading(), pickup2PoseStart.getHeading())
-                .build();
-        pickup2Path = follower.pathBuilder()
-                .addPath(new BezierLine(pickup2PoseStart, pickup2PoseEnd))
+        pickup3 = follower.pathBuilder()
+                .addPath(new BezierCurve(scorePose3,new Pose(47,68), pickup3PoseStart))
+                .setLinearHeadingInterpolation(scorePose3.getHeading(), pickup3PoseStart.getHeading())
                 .build();
         score4 = follower.pathBuilder()
-                .addPath(new BezierCurve(pickup2PoseEnd,new Pose(42,82),scorePose4))
-                .setLinearHeadingInterpolation(pickup2PoseEnd.getHeading(), scorePose4.getHeading())
-                .build();
-        openGateGrab2 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose4,new Pose(47,68), openGateGrabPose2))
-                .setLinearHeadingInterpolation(scorePose4.getHeading(), openGateGrabPose2.getHeading())
-                .build();
-        score5 = follower.pathBuilder()
-                .addPath(new BezierCurve(openGateGrabPose2,new Pose(51,93),scorePose5))
-                .setLinearHeadingInterpolation(openGateGrabPose2.getHeading(), scorePose5.getHeading())
+                .addPath(new BezierCurve(pickup3PoseStart,new Pose(29,21),scorePose5))
+                .setLinearHeadingInterpolation(pickup3PoseStart.getHeading(), scorePose5.getHeading())
                 .build();
         leave = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose5,new Pose(37,87),leavePose))
+                .addPath(new BezierCurve(scorePose5,new Pose(54,21),leavePose))
                 .setLinearHeadingInterpolation(scorePose5.getHeading(), leavePose.getHeading())
                 .build();
 
@@ -103,8 +80,7 @@ public class BlueFarAuto extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0: // Move from start to score 1
-                follower.followPath(score1,1,true);
-                launcher.setState(Launcher.LauncherState.START_LAUNCHING_NEAR);
+                launcher.setState(Launcher.LauncherState.START_LAUNCHING_FAR);
                 setPathState(1);
                 break;
 
@@ -150,7 +126,7 @@ public class BlueFarAuto extends OpMode {
             case 401:
                 if (!follower.isBusy()){
                     if (actionTimer.getElapsedTime() > launchTime) {
-                        follower.followPath(openGateGrab, 0.8, true);
+                        follower.followPath(pickup2, 0.5, true);
                         launcher.setState(Launcher.LauncherState.PICKUP);
 //                        launcher.setState(Launcher.LauncherState.IDLE);
                         setPathState(5);
@@ -165,7 +141,7 @@ public class BlueFarAuto extends OpMode {
                 break;
 
             case 501: // Wait a moment for pickup, then drive to score 3
-                if (actionTimer.getElapsedTime() > 1200) {
+                if (actionTimer.getElapsedTime() > 1600) {
                     follower.followPath(score3, 1, true);
 //                    launcher.setState(Launcher.LauncherState.IDLE);
                     setPathState(6);
@@ -176,21 +152,14 @@ public class BlueFarAuto extends OpMode {
             case 6: // Wait until robot finishes pickup1, then move to score 2
                 if (!follower.isBusy()) {
                     launcher.setState(Launcher.LauncherState.LAUNCH);
-                    setPathState(601);
-                }
-                break;
-
-            case 601: // Wait for launch 3
-                if (actionTimer.getElapsedTime() > launchTime) {
-                    launcher.setState(Launcher.LauncherState.PICKUP);
-                    follower.followPath(pickup2, 1, true);
                     setPathState(7);
                 }
                 break;
 
-            case 7: // Wait until robot finishes pickup1, then move to score 2
-                if (!follower.isBusy()) {
-                    follower.followPath(pickup2Path, pickupSpeed, true);
+            case 7: // Wait for launch 3
+                if (actionTimer.getElapsedTime() > launchTime) {
+                    launcher.setState(Launcher.LauncherState.PICKUP);
+                    follower.followPath(pickup3, 1, true);
                     setPathState(8);
                 }
                 break;
@@ -207,7 +176,7 @@ public class BlueFarAuto extends OpMode {
                 if (!follower.isBusy()) {
                     launcher.setState(Launcher.LauncherState.LAUNCH);
                     if (actionTimer.getElapsedTime() > launchTime) {
-                        setPathState(10);
+                        setPathState(1101);
                     }
                 }
                 break;
@@ -215,7 +184,7 @@ public class BlueFarAuto extends OpMode {
             case 10:
                 if (!follower.isBusy()){
                     if (actionTimer.getElapsedTime() > launchTime) {
-                        follower.followPath(openGateGrab2, 0.6, true);
+                        follower.followPath(pickup3, 0.6, true);
                         launcher.setState(Launcher.LauncherState.PICKUP);
 //                        launcher.setState(Launcher.LauncherState.IDLE);
                         setPathState(1001);
@@ -225,7 +194,7 @@ public class BlueFarAuto extends OpMode {
 
             case 1001: // Wait a moment for pickup, then drive to score 3
                 if (actionTimer.getElapsedTime() > 1200) {
-                    follower.followPath(score5, 1, true);
+                    follower.followPath(score4, 1, true);
 //                    launcher.setState(Launcher.LauncherState.IDLE);
                     setPathState(11);
                 }
@@ -273,6 +242,7 @@ public class BlueFarAuto extends OpMode {
         follower.update();
         autonomousPathUpdate();
         launcher.update();
+//        launcher.updateTurret(follower.getPose());
         // Feedback to Driver Hub for debugging
         telemetry.addData("path state", pathState);
         telemetry.addData("x", follower.getPose().getX());

@@ -1,8 +1,13 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import static org.firstinspires.ftc.teamcode.CONSTANTS.BLUE_GOAL_POSITION_X;
+import static org.firstinspires.ftc.teamcode.CONSTANTS.BLUE_GOAL_POSITION_Y;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.HOOD_MAX_POS;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.HOOD_MIN_POS;
+import static org.firstinspires.ftc.teamcode.CONSTANTS.MAX_TURRET_ANGLE;
+import static org.firstinspires.ftc.teamcode.CONSTANTS.TURRET_POSITION_PER_DEGREE;
 
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -104,4 +109,25 @@ public class Launcher {
     public LauncherState getState() {
         return launcherState;
     }
+
+    public void updateTurret(Pose robotPose){
+         double turretPos = 0.5;
+        double robotX = robotPose.getX();
+        double robotY = robotPose.getY();
+        double robotHeading = robotPose.getHeading();
+        double angleToGoal = Math.atan2(robotX - BLUE_GOAL_POSITION_X, BLUE_GOAL_POSITION_Y - robotY) + Math.PI / 2;
+
+        double turretError = angleToGoal - robotHeading;
+        while (turretError > Math.PI) turretError -= 2 * Math.PI;
+        while (turretError < -Math.PI) turretError += 2 * Math.PI;
+
+        double errorDegrees = Math.toDegrees(turretError);
+
+// Clamp turret angle to ±135° to prevent over-rotation
+        errorDegrees = Range.clip(errorDegrees, -MAX_TURRET_ANGLE, MAX_TURRET_ANGLE);
+
+        turretPos = 0.5 + (errorDegrees * TURRET_POSITION_PER_DEGREE);
+        turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
+    }
+
 }
