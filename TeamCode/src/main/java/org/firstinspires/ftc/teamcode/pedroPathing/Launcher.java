@@ -19,10 +19,13 @@ import com.qualcomm.robotcore.util.Range;
 
 public class Launcher {
     public enum LauncherState {
-        START_LAUNCHING_NEAR,
-        START_LAUNCHING_FAR,
+        START_LAUNCHING_BLUE_NEAR,
+        START_LAUNCHING_BLUE_FAR,
+        START_LAUNCHING_RED_NEAR,
+
+        START_LAUNCHING_RED_FAR,
+
         LAUNCH,
-        LAUNCH_BLUE_FAR,
         IDLE,
         PICKUP
     }
@@ -38,6 +41,14 @@ public class Launcher {
     private Timer launchTimer = new Timer();
     public final static double JR_OUTTAKE_BLOCK = 0.78;
     public final static double JR_OUTTAKE_OPEN = 0.0;
+    double FAR_OUTTAKE_VEL = 2300;
+    double NEAR_OUTTAKE_VEL = 1600;
+    double BLUE_NEAR_TURRET_POS = 0.42;
+    double BLUE_FAR_TURRET_POS = 0.4;
+    double RED_NEAR_TURRET_POS = 0;
+    double RED_FAR_TURRET_POS = 0;
+
+
 
     public Launcher(HardwareMap hardwareMap) {
         outtake1 = hardwareMap.get(DcMotorEx.class, "outtake1");
@@ -76,20 +87,36 @@ public class Launcher {
 
     public void update(){
         switch (launcherState){
-            case START_LAUNCHING_NEAR:
-                outtake1.setVelocity(1600);
-                outtake2.setVelocity(1600);
+            case START_LAUNCHING_BLUE_NEAR:
+                outtake1.setVelocity(NEAR_OUTTAKE_VEL);
+                outtake2.setVelocity(NEAR_OUTTAKE_VEL);
                 intake1.setPower(0);
                 intake2.setPower(0);
-                turretServo.setPosition(Range.clip(0.42, 0.28, 0.694)); // 0.422
+                turretServo.setPosition(Range.clip(BLUE_NEAR_TURRET_POS, 0.28, 0.694)); // 0.422
                 hoodServo.setPosition(Range.clip(0.62,HOOD_MIN_POS,HOOD_MAX_POS));
                 break;
-            case START_LAUNCHING_FAR:
-                outtake1.setVelocity(2200);
-                outtake2.setVelocity(2200);
+            case START_LAUNCHING_BLUE_FAR:
+                outtake1.setVelocity(FAR_OUTTAKE_VEL);
+                outtake2.setVelocity(FAR_OUTTAKE_VEL);
                 intake1.setPower(0);
                 intake2.setPower(0);
-                turretServo.setPosition(Range.clip(0.4, 0.28, 0.694)); // 0.422
+                turretServo.setPosition(Range.clip(BLUE_FAR_TURRET_POS, 0.28, 0.694)); // 0.422
+                hoodServo.setPosition(Range.clip(0.4,HOOD_MIN_POS,HOOD_MAX_POS));
+                break;
+            case START_LAUNCHING_RED_NEAR:
+                outtake1.setVelocity(NEAR_OUTTAKE_VEL);
+                outtake2.setVelocity(NEAR_OUTTAKE_VEL);
+                intake1.setPower(0);
+                intake2.setPower(0);
+                turretServo.setPosition(Range.clip(0.58, 0.28, 0.694));
+                hoodServo.setPosition(Range.clip(0.62,HOOD_MIN_POS,HOOD_MAX_POS));
+                break;
+            case START_LAUNCHING_RED_FAR:
+                outtake1.setVelocity(FAR_OUTTAKE_VEL);
+                outtake2.setVelocity(FAR_OUTTAKE_VEL);
+                intake1.setPower(0);
+                intake2.setPower(0);
+                turretServo.setPosition(Range.clip(0.52, 0.28, 0.694));
                 hoodServo.setPosition(Range.clip(0.4,HOOD_MIN_POS,HOOD_MAX_POS));
                 break;
             case LAUNCH:

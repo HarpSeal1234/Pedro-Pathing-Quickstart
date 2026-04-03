@@ -185,7 +185,7 @@ public class autoTele extends LinearOpMode {
 
             // OUTTAKE
             if(gamepad2.left_bumper) {
-                targetOuttakeVelocity = FAR_OUTTAKE_VELOCITY;
+                targetOuttakeVelocity = FAR_OUTTAKE_VELOCITY; // 2200 tip of far triangle 2300 for back then
                 autoUpdate = false;
             } else if(gamepad2.right_bumper) {
                 targetOuttakeVelocity = CLOSE_OUTTAKE_VELOCITY;

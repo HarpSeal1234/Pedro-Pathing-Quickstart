@@ -8,9 +8,10 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+
 //@Disabled
-@Autonomous(name = "Blue Close Auto", group = "OrcaRobotics")
-public class BlueCloseAuto extends OpMode {
+@Autonomous(name = "Red Close Auto", group = "OrcaRobotics")
+public class REDCloseAuto extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer,waitTimer;
