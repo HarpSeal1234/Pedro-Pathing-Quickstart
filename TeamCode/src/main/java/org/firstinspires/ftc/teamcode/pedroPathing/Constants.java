@@ -32,7 +32,7 @@ public class Constants {
                     0.02,
                     0.0,
                     0.000045,
-                    0.6,
+                    0.85,
                     0.015))
             .centripetalScaling(0.0007)
             .mass(14.47);

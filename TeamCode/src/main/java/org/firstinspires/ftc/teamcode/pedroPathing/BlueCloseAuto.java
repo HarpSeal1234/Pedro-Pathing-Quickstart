@@ -9,30 +9,35 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 //@Disabled
-@Autonomous(name = "Blue Close Auto", group = "Examples")
+@Autonomous(name = "Blue Close Auto", group = "OrcaRobotics")
 public class BlueCloseAuto extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer,waitTimer;
 
     private int pathState;
-    private double launchTime = 1500;
+    private double launchTime = 1000;
+
+    private double grabTime = 1400;
     private double pickupSpeed = 0.8;
+    private double grabSpeed = 0.6;
 
     private Launcher launcher;
     private final Pose startPose = new Pose(15.5, 112.5, Math.toRadians(180)); // Start Pose of our robot.
     private final Pose scorePose1 = new Pose(57, 86, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose pickup1PoseStart = new Pose(40, 61, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose pickup1PoseEnd = new Pose(17, 61, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose pickup1PoseStart = new Pose(40, 55, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose pickup1PoseEnd = new Pose(10, 55, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose scorePose2 = new Pose(57, 81, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose openGateGrabPose = new Pose(11.5, 62, Math.toRadians(145)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose openGateGrabStartPose = new Pose(15, 60, Math.toRadians(160)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose openGateGrabEndPose = new Pose(10, 60, Math.toRadians(160)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose scorePose3 = new Pose(57, 83, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose pickup2PoseStart = new Pose(40, 82, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose pickup2PoseEnd = new Pose(19, 82, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose scorePose4 = new Pose(57, 83, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose openGateGrabPose2 = new Pose(11.5, 60.5, Math.toRadians(145)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose scorePose5 = new Pose(57, 83, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose leavePose = new Pose(36, 108, Math.toRadians(180))  ; // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose openGateGrabPose2 = new Pose(11.5, 60.5, Math.toRadians(160)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose scorePose5 = new Pose(57, 83, Math.toRadians(180));
+    private final Pose scorePose6 = new Pose(57, 83, Math.toRadians(180));
+    private final Pose leavePose = new Pose(36, 70, Math.toRadians(180));
 
 
     private PathChain
@@ -40,215 +45,295 @@ public class BlueCloseAuto extends OpMode {
             pickup1,
             pickup1Path,
             score2,
-            openGateGrab,
+            openGateStartGrab,
+            openGateEndGrab,
             score3,
+            openGateStartGrab2,
+            openGateEndGrab2,
+            score4,
+            openGateStartGrab3,
+            openGateEndGrab3,
+            score5,
             pickup2,
             pickup2Path,
-            score4,
-            openGateGrab2,
-            score5,
+            score6,
             leave;
 
     public void buildPaths() {
-        /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
+        // score1: Start launcher mid-path so it's ready by arrival
         score1 = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, scorePose1))
                 .setLinearHeadingInterpolation(startPose.getHeading(), scorePose1.getHeading())
+                .addParametricCallback(0.0, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_NEAR))
                 .build();
+
+        // pickup1: Switch to pickup mode mid-path
         pickup1 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose1,new Pose(56,64),pickup1PoseStart))
+                .addPath(new BezierCurve(scorePose1, new Pose(56, 64), pickup1PoseStart))
                 .setLinearHeadingInterpolation(scorePose1.getHeading(), pickup1PoseStart.getHeading())
+                .addParametricCallback(0.2, () -> launcher.setState(Launcher.LauncherState.PICKUP))
                 .build();
-        pickup1Path  = follower.pathBuilder()
+
+        pickup1Path = follower.pathBuilder()
                 .addPath(new BezierLine(pickup1PoseStart, pickup1PoseEnd))
                 .build();
+
+        // score2
         score2 = follower.pathBuilder()
-                .addPath(new BezierCurve(pickup1PoseEnd,new Pose(54,54),scorePose2))
+                .addPath(new BezierCurve(pickup1PoseEnd, new Pose(54, 54), scorePose2))
                 .setLinearHeadingInterpolation(pickup1PoseEnd.getHeading(), scorePose2.getHeading())
+                .addParametricCallback(0.3, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_NEAR))
                 .build();
-        openGateGrab = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose2,new Pose(48,62), openGateGrabPose))
-                .setLinearHeadingInterpolation(scorePose2.getHeading(), openGateGrabPose.getHeading())
+
+        // openGateStartGrab: Fast approach to gate area
+        openGateStartGrab = follower.pathBuilder()
+                .addPath(new BezierCurve(scorePose2, new Pose(48, 62), openGateGrabStartPose))
+                .setLinearHeadingInterpolation(scorePose2.getHeading(), openGateGrabStartPose.getHeading())
+                .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.PICKUP))
                 .build();
+        // openGateEndGrab: Slow grab into gate
+        openGateEndGrab = follower.pathBuilder()
+                .addPath(new BezierLine(openGateGrabStartPose, openGateGrabEndPose))
+                .setConstantHeadingInterpolation(openGateGrabStartPose.getHeading())
+                .build();
+
+        // score3: from gate grab end to score3
         score3 = follower.pathBuilder()
-                .addPath(new BezierCurve(openGateGrabPose,new Pose(51,54), scorePose3))
-                .setLinearHeadingInterpolation(openGateGrabPose.getHeading(), scorePose3.getHeading())
+                .addPath(new BezierCurve(openGateGrabEndPose, new Pose(51, 54), scorePose3))
+                .setLinearHeadingInterpolation(openGateGrabEndPose.getHeading(), scorePose3.getHeading())
+                .addParametricCallback(0.3, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_NEAR))
                 .build();
+
+        // openGateStartGrab2: Fast approach to gate area (second time)
+        openGateStartGrab2 = follower.pathBuilder()
+                .addPath(new BezierCurve(scorePose3, new Pose(47, 68), openGateGrabStartPose))
+                .setLinearHeadingInterpolation(scorePose3.getHeading(), openGateGrabStartPose.getHeading())
+                .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.PICKUP))
+                .build();
+        // openGateEndGrab2: Slow grab into gate (second time)
+        openGateEndGrab2 = follower.pathBuilder()
+                .addPath(new BezierLine(openGateGrabStartPose, openGateGrabEndPose))
+                .setConstantHeadingInterpolation(openGateGrabStartPose.getHeading())
+                .build();
+
+        // score4: from gate grab end to score4
+        score4 = follower.pathBuilder()
+                .addPath(new BezierCurve(openGateGrabEndPose, new Pose(42, 82), scorePose4))
+                .setLinearHeadingInterpolation(openGateGrabEndPose.getHeading(), scorePose4.getHeading())
+                .addParametricCallback(0.3, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_NEAR))
+                .build();
+
+        // openGateStartGrab3: Fast approach to gate area (third time)
+        openGateStartGrab3 = follower.pathBuilder()
+                .addPath(new BezierCurve(scorePose4, new Pose(47, 68), openGateGrabStartPose))
+                .setLinearHeadingInterpolation(scorePose4.getHeading(), openGateGrabStartPose.getHeading())
+                .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.PICKUP))
+                .build();
+        // openGateEndGrab3: Slow grab into gate (third time)
+        openGateEndGrab3 = follower.pathBuilder()
+                .addPath(new BezierLine(openGateGrabStartPose, openGateGrabEndPose))
+                .setConstantHeadingInterpolation(openGateGrabStartPose.getHeading())
+                .build();
+
+        // score5: from gate grab end to score5
+        score5 = follower.pathBuilder()
+                .addPath(new BezierCurve(openGateGrabEndPose, new Pose(42, 82), scorePose5))
+                .setLinearHeadingInterpolation(openGateGrabEndPose.getHeading(), scorePose5.getHeading())
+                .addParametricCallback(0.3, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_NEAR))
+                .build();
+
+        // pickup2: Switch to pickup mode mid-path (from score5)
         pickup2 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose3,new Pose(47,83),pickup2PoseStart))
-                .setLinearHeadingInterpolation(scorePose3.getHeading(), pickup2PoseStart.getHeading())
+                .addPath(new BezierCurve(scorePose5, new Pose(47, 83), pickup2PoseStart))
+                .setLinearHeadingInterpolation(scorePose5.getHeading(), pickup2PoseStart.getHeading())
+                .addParametricCallback(0.2, () -> launcher.setState(Launcher.LauncherState.PICKUP))
                 .build();
+
         pickup2Path = follower.pathBuilder()
                 .addPath(new BezierLine(pickup2PoseStart, pickup2PoseEnd))
                 .build();
-        score4 = follower.pathBuilder()
-                .addPath(new BezierCurve(pickup2PoseEnd,new Pose(42,82),scorePose4))
-                .setLinearHeadingInterpolation(pickup2PoseEnd.getHeading(), scorePose4.getHeading())
-                .build();
-        openGateGrab2 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose4,new Pose(47,68), openGateGrabPose2))
-                .setLinearHeadingInterpolation(scorePose4.getHeading(), openGateGrabPose2.getHeading())
-                .build();
-        score5 = follower.pathBuilder()
-                .addPath(new BezierCurve(openGateGrabPose2,new Pose(51,93),scorePose5))
-                .setLinearHeadingInterpolation(openGateGrabPose2.getHeading(), scorePose5.getHeading())
-                .build();
-        leave = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose5,new Pose(37,87),leavePose))
-                .setLinearHeadingInterpolation(scorePose5.getHeading(), leavePose.getHeading())
+
+        // score6
+        score6 = follower.pathBuilder()
+                .addPath(new BezierCurve(pickup2PoseEnd, new Pose(42, 82), scorePose6))
+                .setLinearHeadingInterpolation(pickup2PoseEnd.getHeading(), scorePose6.getHeading())
+                .addParametricCallback(0.3, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_NEAR))
                 .build();
 
+        leave = follower.pathBuilder()
+                .addPath(new BezierCurve(scorePose6, new Pose(37, 87), leavePose))
+                .setLinearHeadingInterpolation(scorePose6.getHeading(), leavePose.getHeading())
+                .build();
     }
+
     public void autonomousPathUpdate() {
         switch (pathState) {
-            case 0: // Move from start to score 1
-                follower.followPath(score1,1,true);
-                launcher.setState(Launcher.LauncherState.START_LAUNCHING_NEAR);
+            // === SCORE 1 ===
+            case 0:
+                follower.followPath(score1, 1, true);
                 setPathState(1);
                 break;
-
-            case 1: // Wait until arrived at score1, then LAUNCH
+            case 1: // Arrived → wait for flywheel to reach speed
                 if (!follower.isBusy()) {
-                    if (actionTimer.getElapsedTime() > 500) {
-                        launcher.setState(Launcher.LauncherState.LAUNCH);
-                        setPathState(101);
-                    }
-                }
-                break;
-
-            case 101: // Wait for launch to finish
-                if (actionTimer.getElapsedTime() > launchTime) {
-                    follower.followPath(pickup1, 1, true);
-                    launcher.setState(Launcher.LauncherState.PICKUP);
                     setPathState(2);
                 }
                 break;
-
-            case 2: // Wait until robot finishes pickup1, then move to score 2
-                if (!follower.isBusy()) {
-                    follower.followPath(pickup1Path, pickupSpeed, true);
+            case 2: // Flywheel spin-up wait
+                if (actionTimer.getElapsedTime() > 500) {
+                    launcher.setState(Launcher.LauncherState.LAUNCH);
                     setPathState(3);
                 }
                 break;
+            case 3: // Wait for all balls
+                if (actionTimer.getElapsedTime() > launchTime) {
+                    follower.followPath(pickup1, 1, true);
+                    setPathState(4);
+                }
+                break;
 
-            case 3: // Wait until robot finishes pickup1, then move to score 2
+            // === PICKUP 1 ===
+            case 4:
+                if (!follower.isBusy()) {
+                    follower.followPath(pickup1Path, pickupSpeed, true);
+                    setPathState(5);
+                }
+                break;
+            case 5:
                 if (!follower.isBusy()) {
                     follower.followPath(score2, 1, true);
-//                    launcher.setState(Launcher.LauncherState.IDLE);
-                        setPathState(4);
-                }
-                break;
-
-            case 4: // Arrived at score 2? Now LAUNCH.
-                if (!follower.isBusy()) {
-                    launcher.setState(Launcher.LauncherState.LAUNCH);
-                    setPathState(401);
-                }
-                break;
-
-            case 401:
-                if (!follower.isBusy()){
-                    if (actionTimer.getElapsedTime() > launchTime) {
-                        follower.followPath(openGateGrab, 0.8, true);
-                        launcher.setState(Launcher.LauncherState.PICKUP);
-//                        launcher.setState(Launcher.LauncherState.IDLE);
-                        setPathState(5);
-                    }
-                }
-                break;
-
-            case 5: // Wait until robot finishes pickup1, then move to score 2
-                if (!follower.isBusy()) {
-                        setPathState(501);
-                }
-                break;
-
-            case 501: // Wait a moment for pickup, then drive to score 3
-                if (actionTimer.getElapsedTime() > 1200) {
-                    follower.followPath(score3, 1, true);
-//                    launcher.setState(Launcher.LauncherState.IDLE);
                     setPathState(6);
                 }
                 break;
 
-
-            case 6: // Wait until robot finishes pickup1, then move to score 2
+            // === SCORE 2 (callback preps launcher at 30%) ===
+            case 6: // Arrived → launch
                 if (!follower.isBusy()) {
                     launcher.setState(Launcher.LauncherState.LAUNCH);
-                    setPathState(601);
-                }
-                break;
-
-            case 601: // Wait for launch 3
-                if (actionTimer.getElapsedTime() > launchTime) {
-                    launcher.setState(Launcher.LauncherState.PICKUP);
-                    follower.followPath(pickup2, 1, true);
                     setPathState(7);
                 }
                 break;
-
-            case 7: // Wait until robot finishes pickup1, then move to score 2
-                if (!follower.isBusy()) {
-                    follower.followPath(pickup2Path, pickupSpeed, true);
+            case 7: // Wait for all balls
+                if (actionTimer.getElapsedTime() > launchTime) {
+                    follower.followPath(openGateStartGrab, 1.0, true);
                     setPathState(8);
                 }
                 break;
 
-            case 8: // Wait until robot finishes pickup1, then move to score 2
+            // === OPEN GATE GRAB 1 ===
+            case 8:
                 if (!follower.isBusy()) {
-                    follower.followPath(score4, 1, true);
-//                    launcher.setState(Launcher.LauncherState.IDLE);
+                    follower.followPath(openGateEndGrab, grabSpeed, true);
                     setPathState(9);
                 }
                 break;
+            case 9: // Wait for pickup
+                if (!follower.isBusy() && actionTimer.getElapsedTime() > grabTime) {
+                    follower.followPath(score3, 1.0, true);
+                    setPathState(10);
+                }
+                break;
 
-            case 9: // Wait until robot finishes pickup1, then move to score 2
+            // === SCORE 3 (callback preps launcher at 30%) ===
+            case 10: // Arrived → launch
                 if (!follower.isBusy()) {
                     launcher.setState(Launcher.LauncherState.LAUNCH);
-                    if (actionTimer.getElapsedTime() > launchTime) {
-                        setPathState(10);
-                    }
-                }
-                break;
-
-            case 10:
-                if (!follower.isBusy()){
-                    if (actionTimer.getElapsedTime() > launchTime) {
-                        follower.followPath(openGateGrab2, 0.6, true);
-                        launcher.setState(Launcher.LauncherState.PICKUP);
-//                        launcher.setState(Launcher.LauncherState.IDLE);
-                        setPathState(1001);
-                    }
-                }
-                break;
-
-            case 1001: // Wait a moment for pickup, then drive to score 3
-                if (actionTimer.getElapsedTime() > 1200) {
-                    follower.followPath(score5, 1, true);
-//                    launcher.setState(Launcher.LauncherState.IDLE);
                     setPathState(11);
                 }
                 break;
+            case 11: // Wait for all balls
+                if (actionTimer.getElapsedTime() > launchTime) {
+                    follower.followPath(openGateStartGrab2, 1.0, true);
+                    setPathState(12);
+                }
+                break;
 
+            // === OPEN GATE GRAB 2 ===
+            case 12:
+                if (!follower.isBusy()) {
+                    follower.followPath(openGateEndGrab2, grabSpeed, true);
+                    setPathState(13);
+                }
+                break;
+            case 13: // Wait for pickup
+                if (!follower.isBusy() && actionTimer.getElapsedTime() > grabTime) {
+                    follower.followPath(score4, 1.0, true);
+                    setPathState(14);
+                }
+                break;
 
-            case 11: // Wait until robot finishes pickup1, then move to score 2
+            // === SCORE 4 (callback preps launcher at 30%) ===
+            case 14: // Arrived → launch
                 if (!follower.isBusy()) {
                     launcher.setState(Launcher.LauncherState.LAUNCH);
-                    setPathState(1101);
+                    setPathState(15);
                 }
                 break;
-
-            case 1101: // Wait for launch 3
+            case 15: // Wait for all balls
                 if (actionTimer.getElapsedTime() > launchTime) {
-                    follower.followPath(leave,1,true);
-                    setPathState(100);
+                    follower.followPath(openGateStartGrab3, 1.0, true);
+                    setPathState(16);
                 }
                 break;
 
-
-            case 100: // Done
+            // === OPEN GATE GRAB 3 ===
+            case 16:
                 if (!follower.isBusy()) {
-                    // Auto finished!
+                    follower.followPath(openGateEndGrab3, grabSpeed, true);
+                    setPathState(17);
+                }
+                break;
+            case 17: // Wait for pickup
+                if (!follower.isBusy() && actionTimer.getElapsedTime() > grabTime) {
+                    follower.followPath(score5, 1.0, true);
+                    setPathState(18);
+                }
+                break;
+
+            // === SCORE 5 (callback preps launcher at 30%) ===
+            case 18: // Arrived → launch
+                if (!follower.isBusy()) {
+                    launcher.setState(Launcher.LauncherState.LAUNCH);
+                    setPathState(19);
+                }
+                break;
+            case 19: // Wait for all balls
+                if (actionTimer.getElapsedTime() > launchTime) {
+                    follower.followPath(pickup2, 1, false);
+                    setPathState(20);
+                }
+                break;
+
+            // === PICKUP 2 ===
+            case 20:
+                if (!follower.isBusy()) {
+                    follower.followPath(pickup2Path, pickupSpeed, true);
+                    setPathState(21);
+                }
+                break;
+            case 21:
+                if (!follower.isBusy()) {
+                    follower.followPath(score6, 1, true);
+                    setPathState(22);
+                }
+                break;
+
+            // === SCORE 6 (callback preps launcher at 30%) ===
+            case 22: // Arrived → launch
+                if (!follower.isBusy()) {
+                    launcher.setState(Launcher.LauncherState.LAUNCH);
+                    setPathState(23);
+                }
+                break;
+            case 23: // Wait for all balls, then leave
+                if (actionTimer.getElapsedTime() > launchTime) {
+                    follower.followPath(leave, 1, true);
+                    setPathState(24);
+                }
+                break;
+
+            // === LEAVE ===
+            case 24:
+                if (!follower.isBusy()) {
                     setPathState(-1);
                     requestOpModeStop();
                 }

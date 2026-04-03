@@ -81,16 +81,16 @@ public class Launcher {
                 outtake2.setVelocity(1600);
                 intake1.setPower(0);
                 intake2.setPower(0);
-                turretServo.setPosition(Range.clip(0.416, 0.28, 0.694)); // 0.422
-                hoodServo.setPosition(Range.clip(0.5,HOOD_MIN_POS,HOOD_MAX_POS));
+                turretServo.setPosition(Range.clip(0.42, 0.28, 0.694)); // 0.422
+                hoodServo.setPosition(Range.clip(0.62,HOOD_MIN_POS,HOOD_MAX_POS));
                 break;
             case START_LAUNCHING_FAR:
-                outtake1.setVelocity(2000);
-                outtake2.setVelocity(2000);
+                outtake1.setVelocity(2200);
+                outtake2.setVelocity(2200);
                 intake1.setPower(0);
                 intake2.setPower(0);
-                turretServo.setPosition(Range.clip(0.531, 0.28, 0.694)); // 0.422
-                hoodServo.setPosition(Range.clip(0.7,HOOD_MIN_POS,HOOD_MAX_POS));
+                turretServo.setPosition(Range.clip(0.4, 0.28, 0.694)); // 0.422
+                hoodServo.setPosition(Range.clip(0.4,HOOD_MIN_POS,HOOD_MAX_POS));
                 break;
             case LAUNCH:
                 intake1.setPower(1);
