@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 //@Disabled
 @Autonomous(name = "Red Close Auto", group = "OrcaRobotics")
-public class REDCloseAuto extends OpMode {
+public class RedCloseAuto extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer,waitTimer;
