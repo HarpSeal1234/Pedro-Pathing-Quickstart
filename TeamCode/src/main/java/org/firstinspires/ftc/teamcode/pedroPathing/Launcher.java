@@ -7,6 +7,7 @@ import static org.firstinspires.ftc.teamcode.CONSTANTS.HOOD_MIN_POS;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.MAX_TURRET_ANGLE;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.TURRET_POSITION_PER_DEGREE;
 
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -41,18 +42,21 @@ public class Launcher {
     private Timer launchTimer = new Timer();
     public final static double JR_OUTTAKE_BLOCK = 0.78;
     public final static double JR_OUTTAKE_OPEN = 0.0;
-    double FAR_OUTTAKE_VEL = 2300;
+    double FAR_OUTTAKE_VEL = 2200;
     double NEAR_OUTTAKE_VEL = 1600;
     double BLUE_NEAR_TURRET_POS = 0.42;
-    double BLUE_FAR_TURRET_POS = 0.4;
+    double BLUE_FAR_TURRET_POS = 0.383;
     double RED_NEAR_TURRET_POS = 0;
     double RED_FAR_TURRET_POS = 0;
+    double lastOuttakeVel = 0; // remember flywheel speed for LAUNCH state
 
 
 
-    public Launcher(HardwareMap hardwareMap) {
+    public Launcher(HardwareMap hardwareMap, PIDFCoefficients pidfCoefficients) {
         outtake1 = hardwareMap.get(DcMotorEx.class, "outtake1");
         outtake1.setDirection(DcMotorEx.Direction.FORWARD);
+        outtake1.setVelocityPIDFCoefficients(pidfCoefficients.P, pidfCoefficients.I, pidfCoefficients.D, pidfCoefficients.F);
+
         outtake1.setVelocity(0);
         outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         outtake1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -60,6 +64,7 @@ public class Launcher {
 
         outtake2 = hardwareMap.get(DcMotorEx.class, "outtake2");
         outtake2.setDirection(DcMotorEx.Direction.REVERSE);
+        outtake2.setVelocityPIDFCoefficients(pidfCoefficients.P, pidfCoefficients.I, pidfCoefficients.D, pidfCoefficients.F);
         outtake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         outtake2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         outtake2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -88,6 +93,7 @@ public class Launcher {
     public void update(){
         switch (launcherState){
             case START_LAUNCHING_BLUE_NEAR:
+                lastOuttakeVel = NEAR_OUTTAKE_VEL;
                 outtake1.setVelocity(NEAR_OUTTAKE_VEL);
                 outtake2.setVelocity(NEAR_OUTTAKE_VEL);
                 intake1.setPower(0);
@@ -96,14 +102,16 @@ public class Launcher {
                 hoodServo.setPosition(Range.clip(0.62,HOOD_MIN_POS,HOOD_MAX_POS));
                 break;
             case START_LAUNCHING_BLUE_FAR:
+                lastOuttakeVel = FAR_OUTTAKE_VEL;
                 outtake1.setVelocity(FAR_OUTTAKE_VEL);
                 outtake2.setVelocity(FAR_OUTTAKE_VEL);
                 intake1.setPower(0);
                 intake2.setPower(0);
                 turretServo.setPosition(Range.clip(BLUE_FAR_TURRET_POS, 0.28, 0.694)); // 0.422
-                hoodServo.setPosition(Range.clip(0.4,HOOD_MIN_POS,HOOD_MAX_POS));
+                hoodServo.setPosition(Range.clip(0.383,HOOD_MIN_POS,HOOD_MAX_POS));
                 break;
             case START_LAUNCHING_RED_NEAR:
+                lastOuttakeVel = NEAR_OUTTAKE_VEL;
                 outtake1.setVelocity(NEAR_OUTTAKE_VEL);
                 outtake2.setVelocity(NEAR_OUTTAKE_VEL);
                 intake1.setPower(0);
@@ -112,6 +120,7 @@ public class Launcher {
                 hoodServo.setPosition(Range.clip(0.62,HOOD_MIN_POS,HOOD_MAX_POS));
                 break;
             case START_LAUNCHING_RED_FAR:
+                lastOuttakeVel = FAR_OUTTAKE_VEL;
                 outtake1.setVelocity(FAR_OUTTAKE_VEL);
                 outtake2.setVelocity(FAR_OUTTAKE_VEL);
                 intake1.setPower(0);
@@ -120,6 +129,8 @@ public class Launcher {
                 hoodServo.setPosition(Range.clip(0.4,HOOD_MIN_POS,HOOD_MAX_POS));
                 break;
             case LAUNCH:
+                outtake1.setVelocity(lastOuttakeVel);
+                outtake2.setVelocity(lastOuttakeVel);
                 intake1.setPower(1);
                 intake2.setPower(1);
                 break;
@@ -137,6 +148,13 @@ public class Launcher {
         return launcherState;
     }
 
+    public double getOuttakeVelocity() {
+        return outtake1.getVelocity();
+    }
+
+    public boolean isFlywheelReady() {
+        return lastOuttakeVel > 0 && Math.abs(outtake1.getVelocity()) >= lastOuttakeVel * 0.95;
+    }
     public void updateTurret(Pose robotPose){
          double turretPos = 0.5;
         double robotX = robotPose.getX();

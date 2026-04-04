@@ -15,6 +15,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
+    public static final PIDFCoefficients farPidfCoefficients = new PIDFCoefficients(1.5, 0.0002, 0.0, 14.3);
+    public static final PIDFCoefficients closePidfCoefficients = new PIDFCoefficients(1.3, 0.0002, 0.0, 14.2);
     public static FollowerConstants followerConstants = new FollowerConstants()
             .forwardZeroPowerAcceleration(-31.6)
             .lateralZeroPowerAcceleration(-62.15)
@@ -24,9 +26,9 @@ public class Constants {
                     0.001,
                     0.03))
             .headingPIDFCoefficients(new PIDFCoefficients(
-                    0.5,
+                    1.0,
                     0.0,
-                    0.001,
+                    0.01,
                     0.025))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(
                     0.02,
@@ -37,7 +39,8 @@ public class Constants {
             .centripetalScaling(0.0007)
             .mass(14.47);
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
+    // PathConstraints(tValue, velocity, translational, heading, timeout, brakingStrength, searchLimit, brakingStart)
+    public static PathConstraints pathConstraints = new PathConstraints(0.99, 0.1, 0.1, 0.003, 200, 1, 10, 1);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
