@@ -28,7 +28,7 @@ public class BlueCloseAuto extends OpMode {
     private final Pose pickup1PoseStart = new Pose(40, 55, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose pickup1PoseEnd = new Pose(10, 55, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose scorePose2 = new Pose(57, 81, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose openGateGrabStartPose = new Pose(15, 60, Math.toRadians(160)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose openGateGrabStartPose = new Pose(16.5, 60, Math.toRadians(160)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose openGateGrabEndPose = new Pose(10, 60, Math.toRadians(160)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose scorePose3 = new Pose(57, 83, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose pickup2PoseStart = new Pose(40, 82, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
@@ -82,7 +82,7 @@ public class BlueCloseAuto extends OpMode {
         score2 = follower.pathBuilder()
                 .addPath(new BezierCurve(pickup1PoseEnd, new Pose(54, 54), scorePose2))
                 .setLinearHeadingInterpolation(pickup1PoseEnd.getHeading(), scorePose2.getHeading())
-                .addParametricCallback(0.3, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_NEAR))
+                .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_NEAR))
                 .build();
 
         // openGateStartGrab: Fast approach to gate area
@@ -101,7 +101,7 @@ public class BlueCloseAuto extends OpMode {
         score3 = follower.pathBuilder()
                 .addPath(new BezierCurve(openGateGrabEndPose, new Pose(51, 54), scorePose3))
                 .setLinearHeadingInterpolation(openGateGrabEndPose.getHeading(), scorePose3.getHeading())
-                .addParametricCallback(0.3, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_NEAR))
+                .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_NEAR))
                 .build();
 
         // openGateStartGrab2: Fast approach to gate area (second time)
@@ -120,7 +120,7 @@ public class BlueCloseAuto extends OpMode {
         score4 = follower.pathBuilder()
                 .addPath(new BezierCurve(openGateGrabEndPose, new Pose(42, 82), scorePose4))
                 .setLinearHeadingInterpolation(openGateGrabEndPose.getHeading(), scorePose4.getHeading())
-                .addParametricCallback(0.3, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_NEAR))
+                .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_NEAR))
                 .build();
 
         // openGateStartGrab3: Fast approach to gate area (third time)
@@ -138,7 +138,7 @@ public class BlueCloseAuto extends OpMode {
         score5 = follower.pathBuilder()
                 .addPath(new BezierCurve(openGateGrabEndPose, new Pose(42, 82), scorePose5))
                 .setLinearHeadingInterpolation(openGateGrabEndPose.getHeading(), scorePose5.getHeading())
-                .addParametricCallback(0.3, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_NEAR))
+                .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_NEAR))
                 .build();
 
         // pickup2: Switch to pickup mode mid-path (from score5)
@@ -177,8 +177,8 @@ public class BlueCloseAuto extends OpMode {
                     setPathState(2);
                 }
                 break;
-            case 2: // Flywheel spin-up wait
-                if (actionTimer.getElapsedTime() > 500) {
+            case 2: // Wait for flywheel to reach target velocity
+                if (launcher.isFlywheelReady()) {
                     launcher.setState(Launcher.LauncherState.LAUNCH);
                     setPathState(3);
                 }
@@ -360,7 +360,7 @@ public class BlueCloseAuto extends OpMode {
         telemetry.addData("path state", pathState);
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
-        telemetry.addData("heading", follower.getPose().getHeading());
+        telemetry.addData("heading (deg)", Math.toDegrees(follower.getPose().getHeading()));
         telemetry.update();
     }
 
@@ -376,7 +376,7 @@ public class BlueCloseAuto extends OpMode {
         opmodeTimer.resetTimer();
 
         follower = Constants.createFollower(hardwareMap);
-        launcher = new Launcher(hardwareMap);
+        launcher = new Launcher(hardwareMap, Constants.closePidfCoefficients);
 
         buildPaths();
         follower.setStartingPose(startPose);

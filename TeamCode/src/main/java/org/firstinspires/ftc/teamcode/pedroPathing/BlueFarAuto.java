@@ -24,7 +24,7 @@ public class BlueFarAuto extends OpMode {
 
     private Launcher launcher;
     private final Pose startPose = new Pose(55.8, 7.5, Math.toRadians(180));
-    private final Pose pickup1PoseStart = new Pose(36, 36, Math.toRadians(180));
+    private final Pose pickup1PoseStart = new Pose(42, 36, Math.toRadians(180));
     private final Pose pickup1PoseEnd = new Pose(14, 36, Math.toRadians(180));
     private final Pose scorePose = new Pose(52, 16.5, Math.toRadians(180));
     private final Pose pickup2PoseStart = new Pose(16, 9, Math.toRadians(180));
@@ -45,6 +45,9 @@ public class BlueFarAuto extends OpMode {
             pickup4,
             pickup4Path,
             score5,
+            pickup5,
+            pickup5Path,
+            score6,
             leave;
 
     public void buildPaths() {
@@ -63,7 +66,7 @@ public class BlueFarAuto extends OpMode {
         score2 = follower.pathBuilder()
                 .addPath(new BezierCurve(pickup1PoseEnd, new Pose(48, 38), scorePose))
                 .setLinearHeadingInterpolation(pickup1PoseEnd.getHeading(), scorePose.getHeading())
-                .addParametricCallback(0.3, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_FAR))
+                .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_FAR))
                 .build();
 
         // pickup2: Switch to pickup mode mid-path
@@ -81,7 +84,7 @@ public class BlueFarAuto extends OpMode {
         score3 = follower.pathBuilder()
                 .addPath(new BezierCurve(pickup2PoseEnd, new Pose(29, 21), scorePose))
                 .setLinearHeadingInterpolation(pickup2PoseEnd.getHeading(), scorePose.getHeading())
-                .addParametricCallback(0.3, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_FAR))
+                .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_FAR))
                 .build();
 
         // pickup3: Switch to pickup mode mid-path
@@ -99,7 +102,7 @@ public class BlueFarAuto extends OpMode {
         score4 = follower.pathBuilder()
                 .addPath(new BezierCurve(pickup2PoseEnd, new Pose(29, 21), scorePose))
                 .setLinearHeadingInterpolation(pickup2PoseEnd.getHeading(), scorePose.getHeading())
-                .addParametricCallback(0.3, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_FAR))
+                .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_FAR))
                 .build();
 
         // pickup4: Switch to pickup mode mid-path
@@ -117,7 +120,25 @@ public class BlueFarAuto extends OpMode {
         score5 = follower.pathBuilder()
                 .addPath(new BezierCurve(pickup2PoseEnd, new Pose(29, 21), scorePose))
                 .setLinearHeadingInterpolation(pickup2PoseEnd.getHeading(), scorePose.getHeading())
-                .addParametricCallback(0.3, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_FAR))
+                .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_FAR))
+                .build();
+
+        // pickup5: Switch to pickup mode mid-path
+        pickup5 = follower.pathBuilder()
+                .addPath(new BezierCurve(scorePose, new Pose(30, 20), pickup2PoseStart))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2PoseStart.getHeading())
+                .addParametricCallback(0.2, () -> launcher.setState(Launcher.LauncherState.PICKUP))
+                .build();
+
+        pickup5Path = follower.pathBuilder()
+                .addPath(new BezierLine(pickup2PoseStart, pickup2PoseEnd))
+                .build();
+
+        // score6: Prep launcher mid-path
+        score6 = follower.pathBuilder()
+                .addPath(new BezierCurve(pickup2PoseEnd, new Pose(29, 21), scorePose))
+                .setLinearHeadingInterpolation(pickup2PoseEnd.getHeading(), scorePose.getHeading())
+                .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_FAR))
                 .build();
 
         leave = follower.pathBuilder()
@@ -133,8 +154,8 @@ public class BlueFarAuto extends OpMode {
                 launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_FAR);
                 setPathState(1);
                 break;
-            case 1: // Wait for flywheel to reach speed
-                if (actionTimer.getElapsedTime() > 800) {
+            case 1: // Wait for flywheel to reach target velocity
+                if (launcher.isFlywheelReady()) {
                     launcher.setState(Launcher.LauncherState.LAUNCH);
                     setPathState(2);
                 }
@@ -251,15 +272,43 @@ public class BlueFarAuto extends OpMode {
                     setPathState(18);
                 }
                 break;
-            case 18: // Wait for all balls, then leave
+            case 18: // Wait for all balls
                 if (actionTimer.getElapsedTime() > launchTime) {
-                    follower.followPath(leave, 1, true);
+                    follower.followPath(pickup5, 1, true);
                     setPathState(19);
                 }
                 break;
 
-            // === LEAVE ===
+            // === PICKUP 5 ===
             case 19:
+                if (!follower.isBusy()) {
+                    follower.followPath(pickup5Path, pickupSpeed, true);
+                    setPathState(20);
+                }
+                break;
+            case 20: // Wait for pickup
+                if (!follower.isBusy() && actionTimer.getElapsedTime() > grabTime) {
+                    follower.followPath(score6, 1, true);
+                    setPathState(21);
+                }
+                break;
+
+            // === SCORE 6 (callback preps launcher at 30%) ===
+            case 21: // Arrived → launch
+                if (!follower.isBusy()) {
+                    launcher.setState(Launcher.LauncherState.LAUNCH);
+                    setPathState(22);
+                }
+                break;
+            case 22: // Wait for all balls, then leave
+                if (actionTimer.getElapsedTime() > launchTime) {
+                    follower.followPath(leave, 1, true);
+                    setPathState(23);
+                }
+                break;
+
+            // === LEAVE ===
+            case 23:
                 if (!follower.isBusy()) {
                     setPathState(-1);
                     requestOpModeStop();
@@ -287,9 +336,10 @@ public class BlueFarAuto extends OpMode {
 //        launcher.updateTurret(follower.getPose());
         // Feedback to Driver Hub for debugging
         telemetry.addData("path state", pathState);
+        telemetry.addData("Target Velocity", launcher.getOuttakeVelocity());
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
-        telemetry.addData("heading", follower.getPose().getHeading());
+        telemetry.addData("heading (deg)", Math.toDegrees(follower.getPose().getHeading()));
         telemetry.update();
     }
 
@@ -305,7 +355,7 @@ public class BlueFarAuto extends OpMode {
         opmodeTimer.resetTimer();
 
         follower = Constants.createFollower(hardwareMap);
-        launcher = new Launcher(hardwareMap);
+        launcher = new Launcher(hardwareMap, Constants.farPidfCoefficients);
 
         buildPaths();
         follower.setStartingPose(startPose);

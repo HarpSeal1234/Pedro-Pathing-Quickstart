@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 //@Disabled
 @Autonomous(name = "Red Close Auto", group = "OrcaRobotics")
-public class REDCloseAuto extends OpMode {
+public class RedCloseAuto extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer,waitTimer;
@@ -178,8 +178,8 @@ public class REDCloseAuto extends OpMode {
                     setPathState(2);
                 }
                 break;
-            case 2: // Flywheel spin-up wait
-                if (actionTimer.getElapsedTime() > 500) {
+            case 2: // Wait for flywheel to reach target velocity
+                if (launcher.isFlywheelReady()) {
                     launcher.setState(Launcher.LauncherState.LAUNCH);
                     setPathState(3);
                 }
@@ -377,7 +377,7 @@ public class REDCloseAuto extends OpMode {
         opmodeTimer.resetTimer();
 
         follower = Constants.createFollower(hardwareMap);
-        launcher = new Launcher(hardwareMap);
+        launcher = new Launcher(hardwareMap, Constants.closePidfCoefficients);
 
         buildPaths();
         follower.setStartingPose(startPose);
