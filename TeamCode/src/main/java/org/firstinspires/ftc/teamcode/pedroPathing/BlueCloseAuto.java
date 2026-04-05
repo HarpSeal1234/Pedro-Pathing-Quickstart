@@ -16,11 +16,11 @@ public class BlueCloseAuto extends OpMode {
     private Timer pathTimer, actionTimer, opmodeTimer,waitTimer;
 
     private int pathState;
-    private double launchTime = 1000;
+    private double launchTime = 800;
 
-    private double grabTime = 1400;
+    private double grabTime = 900;
     private double pickupSpeed = 0.8;
-    private double grabSpeed = 0.6;
+    private double grabSpeed = 0.7 ;
 
     private Launcher launcher;
     private final Pose startPose = new Pose(15.5, 112.5, Math.toRadians(180)); // Start Pose of our robot.
