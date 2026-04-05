@@ -360,7 +360,7 @@ public class BlueCloseAuto extends OpMode {
         telemetry.addData("path state", pathState);
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
-        telemetry.addData("heading (deg)", Math.toDegrees(follower.getPose().getHeading()));
+        telemetry.addData("heading", follower.getPose().getHeading());
         telemetry.update();
     }
 

@@ -7,6 +7,8 @@ import static org.firstinspires.ftc.teamcode.CONSTANTS.HOOD_MIN_POS;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.MAX_TURRET_ANGLE;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.TURRET_POSITION_PER_DEGREE;
 
+import org.firstinspires.ftc.teamcode.CONSTANTS;
+
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -160,7 +162,17 @@ public class Launcher {
         double robotX = robotPose.getX();
         double robotY = robotPose.getY();
         double robotHeading = robotPose.getHeading();
-        double angleToGoal = Math.atan2(robotX - BLUE_GOAL_POSITION_X, BLUE_GOAL_POSITION_Y - robotY) + Math.PI / 2;
+
+        // Transform turret offset from robot-local frame to field frame
+        double turretX = robotX
+                + CONSTANTS.TURRET_OFFSET_FORWARD * Math.cos(robotHeading)
+                - CONSTANTS.TURRET_OFFSET_LEFT * Math.sin(robotHeading);
+        double turretY = robotY
+                + CONSTANTS.TURRET_OFFSET_FORWARD * Math.sin(robotHeading)
+                + CONSTANTS.TURRET_OFFSET_LEFT * Math.cos(robotHeading);
+
+        // Angle from turret position to goal
+        double angleToGoal = Math.atan2(turretX - BLUE_GOAL_POSITION_X, BLUE_GOAL_POSITION_Y - turretY) + Math.PI / 2;
 
         double turretError = angleToGoal - robotHeading;
         while (turretError > Math.PI) turretError -= 2 * Math.PI;

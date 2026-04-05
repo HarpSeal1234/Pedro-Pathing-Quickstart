@@ -45,6 +45,8 @@ import static org.firstinspires.ftc.teamcode.CONSTANTS.kD;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.kI;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.kP;
 
+import org.firstinspires.ftc.teamcode.CONSTANTS;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -80,7 +82,7 @@ import java.util.List;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Auto Tele", group="! Linear OpMode")
+@TeleOp(name="Auto Tele", group="OrcaRobotics")
 public class autoTele extends LinearOpMode {
 //    Pose2d initialPose = new Pose2d(0, 0, Math.toRadians(0));
 
@@ -135,12 +137,14 @@ public class autoTele extends LinearOpMode {
 
     private double position = 5.0;
     private double turretPos = 0.5;
+    private double robotHeading = Math.PI/2;
     private double hoodPos = 0.5;
 
     boolean intake1On = false;
     double intake1Vel = 0.0;
     INTAKE_STATUS intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
     private Servo pivot;
+    private BallDetector ballDetector;
 
     ElapsedTime intakeTimer = new ElapsedTime();
 
@@ -191,7 +195,10 @@ public class autoTele extends LinearOpMode {
 //            rightFront.setPower(rightFrontPower);
 //            rightBack.setPower(rightBackPower);
 
+            ballDetector.update();
 
+            // Get raw distance
+            double distanceMM = ballDetector.getDistanceMM();
             // OUTTAKE
             if(gamepad2.left_bumper) {
                 targetOuttakeVelocity = FAR_OUTTAKE_VELOCITY; // 2200 tip of far triangle 2300 for back then
@@ -247,11 +254,21 @@ public class autoTele extends LinearOpMode {
             }
 
             if (aiming){
-                // 1. Goal Coordinates
+                // 1. Compute turret world position (turret is offset from robot center)
                 double robotX = pose.getX();
                 double robotY = pose.getY();
                 double robotHeading = pose.getHeading();
-                angleToGoal = Math.atan2(robotX - GOAL_X, GOAL_Y - robotY) + Math.PI / 2;
+
+                // Transform turret offset from robot-local frame to field frame
+                double turretX = robotX
+                        + CONSTANTS.TURRET_OFFSET_FORWARD * Math.cos(robotHeading)
+                        - CONSTANTS.TURRET_OFFSET_LEFT * Math.sin(robotHeading);
+                double turretY = robotY
+                        + CONSTANTS.TURRET_OFFSET_FORWARD * Math.sin(robotHeading)
+                        + CONSTANTS.TURRET_OFFSET_LEFT * Math.cos(robotHeading);
+
+                // 2. Angle from turret position to goal
+                angleToGoal = Math.atan2(turretX - GOAL_X, GOAL_Y - turretY) + Math.PI / 2;
                 turretError = angleToGoal - robotHeading;
 
                 while (turretError > Math.PI) turretError -= 2 * Math.PI;
@@ -282,6 +299,10 @@ public class autoTele extends LinearOpMode {
                 intake2Power = 1.0;
                 intake1Power = CLOSE_INTAKE_POWER;
                 intakeStatus = INTAKE_STATUS.INTAKE_STARTED;
+                // Launching balls — reset ball count since all balls are being shot out
+                if (targetOuttakeVelocity > 0) {
+                    ballDetector.resetLoadedCount();
+                }
             } else if (gamepad2.b){
                 intake2Power = 0.0;
                 intake1Power = 0;
@@ -335,11 +356,13 @@ public class autoTele extends LinearOpMode {
         }
 
     }
+
     public void initHardware() {
         initMotorOne(kP, kI, kD, F, position);
         initMotorTwo(kP, kI, kD, F, position);
         initDriveMotors();
         initAprilTag();
+        ballDetector = new BallDetector(hardwareMap);
 //        initCamera();
         initIntake();
         initTurret();
@@ -519,10 +542,11 @@ public class autoTele extends LinearOpMode {
         telemetry.addData("Status", "Run Time: " + runtime.toString());
 //        telemetry.addData("")
         telemetry.addData("turretpos",turretPos);
-        telemetry.addData("error",turretError);
-        telemetry.addData("angle to goal",angleToGoal);
+        telemetry.addData("turretError", Math.toDegrees(turretError));
+        telemetry.addData("angle to goal", Math.toDegrees(angleToGoal));
         telemetry.addData("x pos",follower.getPose().getX());
         telemetry.addData("y pos",follower.getPose().getY());
+        telemetry.addData("robot heading", Math.toDegrees(follower.getHeading()));
         telemetry.addData("Goal", goalColor);
         telemetry.addData("hood",hoodPos);
         telemetry.addData("Intake Power", "Intake Power: " + intake1Power);

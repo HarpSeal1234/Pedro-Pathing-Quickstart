@@ -20,9 +20,16 @@ public class CONSTANTS {
     public static final double ROBOT_HALF_WIDTH = ROBOT_WIDTH_INCHES / 2.0;
     public static final double RED_GOAL_POSITION_X = 139; // 144 - 8
     public static final double RED_GOAL_POSITION_Y = 139; // 144 - 8
-    public final static double BLUE_GOAL_POSITION_X = 5;
-    public final static double BLUE_GOAL_POSITION_Y = 139;
+    public final static double BLUE_GOAL_POSITION_X = 6;
+    public final static double BLUE_GOAL_POSITION_Y = 142;
+    // Turret offset from robot center (in inches, robot-local frame)
+    // TURRET_OFFSET_FORWARD: positive = turret is in front of robot center
+    // TURRET_OFFSET_LEFT: positive = turret is to the left of robot center
+    // Measure from your robot center to the turret pivot and adjust these values
+    public static final double TURRET_OFFSET_FORWARD = -1.4; // inches behind robot center (adjust!)
+    public static final double TURRET_OFFSET_LEFT = 0.0;     // inches left of robot center (adjust!)
+
     // Maximum turret rotation in degrees (left or right from center)
     public static final double MAX_TURRET_ANGLE = 135;
-    public static final double TURRET_POSITION_PER_DEGREE =0.0017777777777777779;
+    public static final double TURRET_POSITION_PER_DEGREE =0.0016798245614035089;
 }
