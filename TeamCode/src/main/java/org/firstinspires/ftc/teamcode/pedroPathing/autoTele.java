@@ -199,7 +199,7 @@ public class autoTele extends LinearOpMode {
 
             // Get raw distance
             double distanceMM = ballDetector.getDistanceMM();
-            // OUTTAKE
+            // OUTTAKE//99 100 0.57
             if(gamepad2.left_bumper) {
                 targetOuttakeVelocity = FAR_OUTTAKE_VELOCITY; // 2200 tip of far triangle 2300 for back then
                 autoUpdate = false;
@@ -493,8 +493,8 @@ public class autoTele extends LinearOpMode {
     public double getRobotToGoalDistance() {
         Pose pose = follower.getPose();
 
-        double dx = BLUE_GOAL_POSITION_X - pose.getX();
-        double dy = BLUE_GOAL_POSITION_Y - pose.getY();
+        double dx = GOAL_X - pose.getX();
+        double dy = GOAL_Y - pose.getY();
 
         // Pythagorean theorem: distance = sqrt(dx^2 + dy^2)
         return Math.sqrt(dx * dx + dy * dy);
