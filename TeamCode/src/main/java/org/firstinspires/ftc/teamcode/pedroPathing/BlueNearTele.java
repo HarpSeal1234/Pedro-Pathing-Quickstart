@@ -31,9 +31,9 @@ package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import static org.firstinspires.ftc.teamcode.CONSTANTS.BLUE_GOAL_POSITION_X;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.BLUE_GOAL_POSITION_Y;
+import static org.firstinspires.ftc.teamcode.CONSTANTS.BLUE_NEAR_TELE_START;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.CLOSE_INTAKE_POWER;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.CLOSE_OUTTAKE_VELOCITY;
-import static org.firstinspires.ftc.teamcode.CONSTANTS.DRIVE_POWER;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.FAR_OUTTAKE_VELOCITY;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.HOOD_MAX_POS;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.HOOD_MIN_POS;
@@ -60,12 +60,10 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.pedroPathing.Prism.Color;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -82,8 +80,8 @@ import java.util.List;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Auto Tele", group="OrcaRobotics")
-public class autoTele extends LinearOpMode {
+@TeleOp(name="Blue Near Tele", group="OrcaRobotics")
+public class BlueNearTele extends LinearOpMode {
 //    Pose2d initialPose = new Pose2d(0, 0, Math.toRadians(0));
 
     // Declare OpMode members.
@@ -94,10 +92,6 @@ public class autoTele extends LinearOpMode {
     public static Pose startingPose;
 
     private ElapsedTime runtime = new ElapsedTime();
-    private double GOAL_X = BLUE_GOAL_POSITION_X;
-    private double GOAL_Y = BLUE_GOAL_POSITION_Y;
-    String[] colors = {"BLUE", "RED"};
-    String goalColor = colors[0];
     private DcMotor rightFront = null;
     private DcMotor leftFront = null;
     private DcMotor rightBack = null;
@@ -159,7 +153,7 @@ public class autoTele extends LinearOpMode {
 
         initHardware();
         follower = Constants.createFollower(hardwareMap);
-        startingPose = new Pose(72,72,Math.toRadians(90));
+        startingPose = BLUE_NEAR_TELE_START;
 //        startingPose = new Pose(15.5, 112.5, Math.toRadians(180));
         boolean aiming = false;
         follower.setStartingPose(startingPose); // Or your last Auto pose
@@ -243,16 +237,6 @@ public class autoTele extends LinearOpMode {
                 aiming = false;
             }
 
-            if (gamepad1.b && gamepad1.x){
-                goalColor = colors[1];
-                GOAL_X = RED_GOAL_POSITION_X;
-                GOAL_Y = RED_GOAL_POSITION_Y;
-            } else if (gamepad1.y && gamepad1.a) {
-                goalColor = colors[0];
-                GOAL_X = BLUE_GOAL_POSITION_X;
-                GOAL_Y = BLUE_GOAL_POSITION_Y;
-            }
-
             if (aiming){
                 // 1. Compute turret world position (turret is offset from robot center)
                 double robotX = pose.getX();
@@ -268,7 +252,7 @@ public class autoTele extends LinearOpMode {
                         + CONSTANTS.TURRET_OFFSET_LEFT * Math.cos(robotHeading);
 
                 // 2. Angle from turret position to goal
-                angleToGoal = Math.atan2(turretX - GOAL_X, GOAL_Y - turretY) + Math.PI / 2;
+                angleToGoal = Math.atan2(turretX - BLUE_GOAL_POSITION_X, BLUE_GOAL_POSITION_Y - turretY) + Math.PI / 2;
                 turretError = angleToGoal - robotHeading;
 
                 while (turretError > Math.PI) turretError -= 2 * Math.PI;
@@ -493,8 +477,8 @@ public class autoTele extends LinearOpMode {
     public double getRobotToGoalDistance() {
         Pose pose = follower.getPose();
 
-        double dx = GOAL_X - pose.getX();
-        double dy = GOAL_Y - pose.getY();
+        double dx = BLUE_GOAL_POSITION_X - pose.getX();
+        double dy = BLUE_GOAL_POSITION_Y - pose.getY();
 
         // Pythagorean theorem: distance = sqrt(dx^2 + dy^2)
         return Math.sqrt(dx * dx + dy * dy);
@@ -547,7 +531,6 @@ public class autoTele extends LinearOpMode {
         telemetry.addData("x pos",follower.getPose().getX());
         telemetry.addData("y pos",follower.getPose().getY());
         telemetry.addData("robot heading", Math.toDegrees(follower.getHeading()));
-        telemetry.addData("Goal", goalColor);
         telemetry.addData("hood",hoodPos);
         telemetry.addData("Intake Power", "Intake Power: " + intake1Power);
         telemetry.addData("Target Velocity", targetOuttakeVelocity);

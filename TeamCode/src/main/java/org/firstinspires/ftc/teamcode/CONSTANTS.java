@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.pedropathing.geometry.Pose;
+
 public class CONSTANTS {
     public final static double DRIVE_POWER = 0.8;
     public final static double CLOSE_INTAKE_POWER = 0.9;
@@ -32,4 +34,9 @@ public class CONSTANTS {
     // Maximum turret rotation in degrees (left or right from center)
     public static final double MAX_TURRET_ANGLE = 135;
     public static final double TURRET_POSITION_PER_DEGREE =0.0016798245614035089;
+
+    public  static  final Pose BLUE_NEAR_TELE_START = new Pose();
+    public  static  final Pose RED_NEAR_TELE_START = new Pose(108, 70, Math. toRadians(0));
+    public  static  final Pose BLUE_FAR_TELE_START = new Pose();
+    public static final Pose RED_FAR_TELE_START = new Pose();
 }
