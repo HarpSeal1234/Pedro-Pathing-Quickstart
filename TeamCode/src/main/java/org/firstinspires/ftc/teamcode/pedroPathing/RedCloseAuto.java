@@ -23,21 +23,21 @@ public class RedCloseAuto extends OpMode {
     private double pickupSpeed = 0.8;
     private double grabSpeed = 0.6;
 
-    private Launcher launcher;
+    private Launcher launcher; //0.57 99.1 108.3
     private final Pose startPose = new Pose(128.5, 112.5, Math.toRadians(0)); // Start Pose of our robot.
-    private final Pose scorePose1 = new Pose(87, 86, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose scorePose1 = new Pose(99, 108, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose pickup1PoseStart = new Pose(104, 55, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose pickup1PoseEnd = new Pose(134, 55, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose scorePose2 = new Pose(87, 81, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose scorePose2 = new Pose(99, 108, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose openGateGrabStartPose = new Pose(129, 60, Math.toRadians(-20)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose openGateGrabEndPose = new Pose(134, 60, Math.toRadians(-20)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose scorePose3 = new Pose(87, 83, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose scorePose3 = new Pose(99, 108, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose pickup2PoseStart = new Pose(104, 82, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose pickup2PoseEnd = new Pose(129, 82, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose scorePose4 = new Pose(87, 83, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose scorePose4 = new Pose(99, 108, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose openGateGrabPose2 = new Pose(132.5, 60.5, Math.toRadians(-20)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose scorePose5 = new Pose(87, 83, Math.toRadians(0));
-    private final Pose scorePose6 = new Pose(87, 83, Math.toRadians(0));
+    private final Pose scorePose5 = new Pose(99, 108, Math.toRadians(0));
+    private final Pose scorePose6 = new Pose(99, 108, Math.toRadians(0));
     private final Pose leavePose = new Pose(108, 70, Math.toRadians(0));
 
 

@@ -38,6 +38,8 @@ import static org.firstinspires.ftc.teamcode.CONSTANTS.FAR_OUTTAKE_VELOCITY;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.HOOD_MAX_POS;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.HOOD_MIN_POS;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.MAX_TURRET_ANGLE;
+import static org.firstinspires.ftc.teamcode.CONSTANTS.RED_GOAL_POSITION_X;
+import static org.firstinspires.ftc.teamcode.CONSTANTS.RED_GOAL_POSITION_Y;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.TURRET_POSITION_PER_DEGREE;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.kD;
 import static org.firstinspires.ftc.teamcode.CONSTANTS.kI;
@@ -56,10 +58,12 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.pedroPathing.Prism.Color;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -83,10 +87,15 @@ public class autoTele extends LinearOpMode {
     // Declare OpMode members.
 //    public MecanumDrive drive =  new MecanumDrive(hardwareMap, initialPose);
     private Follower follower;
-
+    double angleToGoal;
+    double turretError;
     public static Pose startingPose;
 
     private ElapsedTime runtime = new ElapsedTime();
+    private double GOAL_X = BLUE_GOAL_POSITION_X;
+    private double GOAL_Y = BLUE_GOAL_POSITION_Y;
+    String[] colors = {"BLUE", "RED"};
+    String goalColor = colors[0];
     private DcMotor rightFront = null;
     private DcMotor leftFront = null;
     private DcMotor rightBack = null;
@@ -146,8 +155,8 @@ public class autoTele extends LinearOpMode {
 
         initHardware();
         follower = Constants.createFollower(hardwareMap);
-//        startingPose = new Pose(72,72,Math.toRadians(90));
-        startingPose = new Pose(15.5, 112.5, Math.toRadians(180));
+        startingPose = new Pose(72,72,Math.toRadians(90));
+//        startingPose = new Pose(15.5, 112.5, Math.toRadians(180));
         boolean aiming = false;
         follower.setStartingPose(startingPose); // Or your last Auto pose
         follower.startTeleopDrive();
@@ -201,6 +210,16 @@ public class autoTele extends LinearOpMode {
             outtake2.setVelocity(targetOuttakeVelocity);
 
             if (autoUpdate) {
+
+                double d = getRobotToGoalDistance();
+
+//                targetv = Range.clip(
+//                        1600
+//                                + 2.0 * (d - 35)
+//                                + 0.06 * Math.pow(d - 35, 2),
+//                        1000,
+//                        FAR_OUTTAKE_VELOCITY
+//                );
                 targetv = Range.clip(
                         (500.0 / (130 - 45)) * (getRobotToGoalDistance() - 45) + 1500,
                         1000,
@@ -217,14 +236,24 @@ public class autoTele extends LinearOpMode {
                 aiming = false;
             }
 
+            if (gamepad1.b && gamepad1.x){
+                goalColor = colors[1];
+                GOAL_X = RED_GOAL_POSITION_X;
+                GOAL_Y = RED_GOAL_POSITION_Y;
+            } else if (gamepad1.y && gamepad1.a) {
+                goalColor = colors[0];
+                GOAL_X = BLUE_GOAL_POSITION_X;
+                GOAL_Y = BLUE_GOAL_POSITION_Y;
+            }
+
             if (aiming){
                 // 1. Goal Coordinates
                 double robotX = pose.getX();
                 double robotY = pose.getY();
                 double robotHeading = pose.getHeading();
-                double angleToGoal = Math.atan2(robotX - BLUE_GOAL_POSITION_X, BLUE_GOAL_POSITION_Y - robotY) + Math.PI / 2;
+                angleToGoal = Math.atan2(robotX - GOAL_X, GOAL_Y - robotY) + Math.PI / 2;
+                turretError = angleToGoal - robotHeading;
 
-                double turretError = angleToGoal - robotHeading;
                 while (turretError > Math.PI) turretError -= 2 * Math.PI;
                 while (turretError < -Math.PI) turretError += 2 * Math.PI;
 
@@ -258,20 +287,21 @@ public class autoTele extends LinearOpMode {
                 intake1Power = 0;
                 intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
             }
+//
+//            if (gamepad1.dpad_up){
+//                hoodPos = 0.7;
+//            } else if (gamepad1.dpad_down){
+//                hoodPos = 0.2;
+//            }
 
-            if (gamepad1.dpad_up){
-                hoodPos = 0.7;
-            } else if (gamepad1.dpad_down){
-                hoodPos = 0.2;
-            }
 
-            /*
+
             if (targetOuttakeVelocity < 1800) {
-                hoodPos = 0.7;
+                hoodPos = 0.5;
             } else if (targetOuttakeVelocity >= 1800) {
-                hoodPos = 0.18;
+                hoodPos = 0.35;
             }
-             */
+
             hoodServo.setPosition(Range.clip(hoodPos,HOOD_MIN_POS,HOOD_MAX_POS));
 
 
@@ -489,6 +519,11 @@ public class autoTele extends LinearOpMode {
         telemetry.addData("Status", "Run Time: " + runtime.toString());
 //        telemetry.addData("")
         telemetry.addData("turretpos",turretPos);
+        telemetry.addData("error",turretError);
+        telemetry.addData("angle to goal",angleToGoal);
+        telemetry.addData("x pos",follower.getPose().getX());
+        telemetry.addData("y pos",follower.getPose().getY());
+        telemetry.addData("Goal", goalColor);
         telemetry.addData("hood",hoodPos);
         telemetry.addData("Intake Power", "Intake Power: " + intake1Power);
         telemetry.addData("Target Velocity", targetOuttakeVelocity);

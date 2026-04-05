@@ -136,7 +136,7 @@ public class BlueCloseAuto extends OpMode {
                 .build();
         // score5: from gate grab end to score5
         score5 = follower.pathBuilder()
-                .addPath(new BezierCurve(openGateGrabEndPose, new Pose(42, 82), scorePose5))
+                .addPath(new BezierCurve(openGateGrabEndPose, new Pose(28, 61), scorePose5))
                 .setLinearHeadingInterpolation(openGateGrabEndPose.getHeading(), scorePose5.getHeading())
                 .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_NEAR))
                 .build();

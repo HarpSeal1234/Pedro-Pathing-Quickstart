@@ -14,12 +14,12 @@ public class CONSTANTS {
     public final static double kI = 0.08;
     public final static double kD = 0.0;
 
-    // Robot dimensions (inches) — 240mm x 240mm
+    // Robot dimensions (inches) — 240mm x 240mm //0.57 99.1 108.3
     public static final double ROBOT_WIDTH_INCHES = 15.7;
     public static final double ROBOT_LENGTH_INCHES = 15.2;
     public static final double ROBOT_HALF_WIDTH = ROBOT_WIDTH_INCHES / 2.0;
-    public static final double RED_GOAL_POSITION_X = 136; // 144 - 8
-    public static final double RED_GOAL_POSITION_Y = 136; // 144 - 8
+    public static final double RED_GOAL_POSITION_X = 139; // 144 - 8
+    public static final double RED_GOAL_POSITION_Y = 139; // 144 - 8
     public final static double BLUE_GOAL_POSITION_X = 5;
     public final static double BLUE_GOAL_POSITION_Y = 139;
     // Maximum turret rotation in degrees (left or right from center)

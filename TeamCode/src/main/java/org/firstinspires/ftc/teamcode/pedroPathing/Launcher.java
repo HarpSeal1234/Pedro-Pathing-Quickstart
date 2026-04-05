@@ -116,7 +116,7 @@ public class Launcher {
                 outtake2.setVelocity(NEAR_OUTTAKE_VEL);
                 intake1.setPower(0);
                 intake2.setPower(0);
-                turretServo.setPosition(Range.clip(0.58, 0.28, 0.694));
+                turretServo.setPosition(Range.clip(0.57, 0.28, 0.694));
                 hoodServo.setPosition(Range.clip(0.62,HOOD_MIN_POS,HOOD_MAX_POS));
                 break;
             case START_LAUNCHING_RED_FAR:
