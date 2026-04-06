@@ -45,10 +45,10 @@ public class Launcher {
     public final static double JR_OUTTAKE_BLOCK = 0.78;
     public final static double JR_OUTTAKE_OPEN = 0.0;
     double FAR_OUTTAKE_VEL = 2200;
-    double NEAR_OUTTAKE_VEL = 1600;
+    double NEAR_OUTTAKE_VEL = 1620;
     double BLUE_NEAR_TURRET_POS = 0.42;
     double BLUE_FAR_TURRET_POS = 0.383;
-    double RED_NEAR_TURRET_POS = 0.57;
+    double RED_NEAR_TURRET_POS = 0.582;
     double RED_FAR_TURRET_POS = 0.617;
     double lastOuttakeVel = 0; // remember flywheel speed for LAUNCH state
 
@@ -118,7 +118,7 @@ public class Launcher {
                 intake1.setPower(0);
                 intake2.setPower(0);
                 turretServo.setPosition(Range.clip(RED_NEAR_TURRET_POS, 0.28, 0.694));
-                hoodServo.setPosition(Range.clip(0.64,HOOD_MIN_POS,HOOD_MAX_POS));
+                hoodServo.setPosition(Range.clip(0.62,HOOD_MIN_POS,HOOD_MAX_POS));
                 break;
             case START_LAUNCHING_RED_FAR:
                 lastOuttakeVel = FAR_OUTTAKE_VEL;
@@ -127,7 +127,7 @@ public class Launcher {
                 intake1.setPower(0);
                 intake2.setPower(0);
                 turretServo.setPosition(Range.clip(RED_FAR_TURRET_POS, 0.28, 0.694));
-                hoodServo.setPosition(Range.clip(0.4,HOOD_MIN_POS,HOOD_MAX_POS));
+                hoodServo.setPosition(Range.clip(0.39,HOOD_MIN_POS,HOOD_MAX_POS));
                 break;
             case LAUNCH:
                 outtake1.setVelocity(lastOuttakeVel);

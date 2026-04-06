@@ -18,8 +18,8 @@ public class BlueFarAuto extends OpMode {
 
     private int pathState;
     private double launchTime = 1000;
-    private double grabTime = 1200;
-    private double pickupSpeed = 0.8;
+    private double grabTime = 1400;
+    private double pickupSpeed = 0.9;
     private double grabSpeed = 0.6;
 
     private Launcher launcher;
@@ -71,7 +71,7 @@ public class BlueFarAuto extends OpMode {
 
         // pickup2: Switch to pickup mode mid-path
         pickup2 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose, new Pose(30, 20), pickup2PoseStart))
+                .addPath(new BezierCurve(scorePose, new Pose(34, 20), new Pose(16, 16), pickup2PoseStart))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2PoseStart.getHeading())
                 .addParametricCallback(0.2, () -> launcher.setState(Launcher.LauncherState.PICKUP))
                 .build();
@@ -89,7 +89,7 @@ public class BlueFarAuto extends OpMode {
 
         // pickup3: Switch to pickup mode mid-path
         pickup3 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose, new Pose(30, 20), pickup2PoseStart))
+                .addPath(new BezierCurve(scorePose, new Pose(34, 20), new Pose(16, 16), pickup2PoseStart))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2PoseStart.getHeading())
                 .addParametricCallback(0.2, () -> launcher.setState(Launcher.LauncherState.PICKUP))
                 .build();
@@ -107,7 +107,7 @@ public class BlueFarAuto extends OpMode {
 
         // pickup4: Switch to pickup mode mid-path
         pickup4 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose, new Pose(30, 20), pickup2PoseStart))
+                .addPath(new BezierCurve(scorePose, new Pose(34, 20), new Pose(16, 16), pickup2PoseStart))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2PoseStart.getHeading())
                 .addParametricCallback(0.2, () -> launcher.setState(Launcher.LauncherState.PICKUP))
                 .build();
@@ -125,7 +125,7 @@ public class BlueFarAuto extends OpMode {
 
         // pickup5: Switch to pickup mode mid-path
         pickup5 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose, new Pose(30, 20), pickup2PoseStart))
+                .addPath(new BezierCurve(scorePose, new Pose(34, 20), new Pose(16, 16), pickup2PoseStart))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2PoseStart.getHeading())
                 .addParametricCallback(0.2, () -> launcher.setState(Launcher.LauncherState.PICKUP))
                 .build();

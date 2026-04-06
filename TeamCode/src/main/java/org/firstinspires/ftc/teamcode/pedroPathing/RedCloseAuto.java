@@ -17,23 +17,22 @@ public class RedCloseAuto extends OpMode {
     private Timer pathTimer, actionTimer, opmodeTimer,waitTimer;
 
     private int pathState;
-    private double launchTime = 800;
+    private double launchTime = 1100;
 
-    private double grabTime = 900;
+    private double grabTime = 1700;
     private double pickupSpeed = 0.9;
-    private double grabSpeed = 0.7;
+    private double grabSpeed = 0.6;
 
     private Launcher launcher; //0.57 99.1 108.3  0.57 99 100
-    private final Pose startPose = new Pose(128.5, 112.5, Math.toRadians(0)); // Start Pose of our robot.
-    private final Pose scorePose1 = new Pose(99, 85, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose pickup1PoseStart = new Pose(104, 55, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose pickup1PoseEnd = new Pose(134, 55, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose scorePose = new Pose(99, 85, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose openGateGrabStartPose = new Pose(121, 60, Math.toRadians(20)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose openGateGrabEndPose = new Pose(129, 60, Math.toRadians(20)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2PoseStart = new Pose(104, 82, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2PoseEnd = new Pose(129, 82, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose openGateGrabPose2 = new Pose(132.5, 60.5, Math.toRadians(20)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose startPose = new Pose(128.5, 112.5, Math.toRadians(0));
+    private final Pose scorePose = new Pose(94, 82, Math.toRadians(0)); // Wheel touches launch triangle, closer to goal
+    private final Pose pickup1PoseStart = new Pose(104, 55, Math.toRadians(0));
+    private final Pose pickup1PoseEnd = new Pose(134, 55, Math.toRadians(0));
+    private final Pose openGateGrabStartPose = new Pose(122, 58, Math.toRadians(25));
+    private final Pose openGateGrabEndPose = new Pose(131, 58, Math.toRadians(25));
+    private final Pose pickup2PoseStart = new Pose(104, 82, Math.toRadians(0));
+    private final Pose pickup2PoseEnd = new Pose(129, 82, Math.toRadians(0));
+    private final Pose openGateGrabPose2 = new Pose(132.5, 60.5, Math.toRadians(20));
     private final Pose leavePose = new Pose(108, 70, Math.toRadians(0));
 
 
@@ -48,26 +47,23 @@ public class RedCloseAuto extends OpMode {
             openGateStartGrab2,
             openGateEndGrab2,
             score4,
-            openGateStartGrab3,
-            openGateEndGrab3,
-            score5,
             pickup2,
             pickup2Path,
-            score6,
+            score5,
             leave;
 
     public void buildPaths() {
         // score1: Start launcher mid-path so it's ready by arrival
         score1 = follower.pathBuilder()
-                .addPath(new BezierLine(startPose, scorePose1))
-                .setLinearHeadingInterpolation(startPose.getHeading(), scorePose1.getHeading())
+                .addPath(new BezierLine(startPose, scorePose))
+                .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
                 .addParametricCallback(0.0, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_RED_NEAR))
                 .build();
 
         // pickup1: Switch to pickup mode mid-path
         pickup1 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose1, new Pose(88, 64), pickup1PoseStart))
-                .setLinearHeadingInterpolation(scorePose1.getHeading(), pickup1PoseStart.getHeading())
+                .addPath(new BezierCurve(scorePose, new Pose(93, 66), pickup1PoseStart))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup1PoseStart.getHeading())
                 .addParametricCallback(0.2, () -> launcher.setState(Launcher.LauncherState.PICKUP))
                 .build();
 
@@ -77,14 +73,14 @@ public class RedCloseAuto extends OpMode {
 
         // score2
         score2 = follower.pathBuilder()
-                .addPath(new BezierCurve(pickup1PoseEnd, new Pose(90, 54), scorePose))
+                .addPath(new BezierCurve(pickup1PoseEnd, new Pose(95, 54), scorePose))
                 .setLinearHeadingInterpolation(pickup1PoseEnd.getHeading(), scorePose.getHeading())
                 .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_RED_NEAR))
                 .build();
 
         // openGateStartGrab: Fast approach to gate area
         openGateStartGrab = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose, new Pose(96, 62), openGateGrabStartPose))
+                .addPath(new BezierCurve(scorePose, new Pose(101, 64), openGateGrabStartPose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), openGateGrabStartPose.getHeading())
                 .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.PICKUP))
                 .build();
@@ -96,14 +92,14 @@ public class RedCloseAuto extends OpMode {
 
         // score3: from gate grab end to score3 — route BELOW spike marks to avoid hitting balls
         score3 = follower.pathBuilder()
-                .addPath(new BezierCurve(openGateGrabEndPose, new Pose(110, 50), new Pose(90, 80), scorePose))
+                .addPath(new BezierCurve(openGateGrabEndPose, new Pose(114, 52), new Pose(94, 72), scorePose))
                 .setLinearHeadingInterpolation(openGateGrabEndPose.getHeading(), scorePose.getHeading())
                 .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_RED_NEAR))
                 .build();
 
         // openGateStartGrab2: Fast approach to gate area (second time)
         openGateStartGrab2 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose, new Pose(97, 68), openGateGrabStartPose))
+                .addPath(new BezierCurve(scorePose, new Pose(102, 70), openGateGrabStartPose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), openGateGrabStartPose.getHeading())
                 .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.PICKUP))
                 .build();
@@ -115,32 +111,14 @@ public class RedCloseAuto extends OpMode {
 
         // score4: from gate grab end to score4 — route BELOW spike marks to avoid hitting balls
         score4 = follower.pathBuilder()
-                .addPath(new BezierCurve(openGateGrabEndPose, new Pose(110, 50), new Pose(90, 80), scorePose))
+                .addPath(new BezierCurve(openGateGrabEndPose, new Pose(114, 52), new Pose(94, 72), scorePose))
                 .setLinearHeadingInterpolation(openGateGrabEndPose.getHeading(), scorePose.getHeading())
                 .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_RED_NEAR))
                 .build();
 
-        // openGateStartGrab3: Fast approach to gate area (third time)
-        openGateStartGrab3 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose, new Pose(97, 68), openGateGrabStartPose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), openGateGrabStartPose.getHeading())
-                .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.PICKUP))
-                .build();
-        // openGateEndGrab3: Slow grab into gate (third time)
-        openGateEndGrab3 = follower.pathBuilder()
-                .addPath(new BezierLine(openGateGrabStartPose, openGateGrabEndPose))
-                .setConstantHeadingInterpolation(openGateGrabStartPose.getHeading())
-                .build();
-        // score5: from gate grab end to score5 — route BELOW spike marks to avoid hitting balls
-        score5 = follower.pathBuilder()
-                .addPath(new BezierCurve(openGateGrabEndPose, new Pose(110, 50), new Pose(90, 80), scorePose))
-                .setLinearHeadingInterpolation(openGateGrabEndPose.getHeading(), scorePose.getHeading())
-                .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_RED_NEAR))
-                .build();
-
-        // pickup2: Switch to pickup mode mid-path (from score5)
+        // pickup2: Switch to pickup mode mid-path (from score4)
         pickup2 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose, new Pose(97, 83), pickup2PoseStart))
+                .addPath(new BezierCurve(scorePose, new Pose(99, 83), pickup2PoseStart))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2PoseStart.getHeading())
                 .addParametricCallback(0.2, () -> launcher.setState(Launcher.LauncherState.PICKUP))
                 .build();
@@ -149,9 +127,9 @@ public class RedCloseAuto extends OpMode {
                 .addPath(new BezierLine(pickup2PoseStart, pickup2PoseEnd))
                 .build();
 
-        // score6
-        score6 = follower.pathBuilder()
-                .addPath(new BezierCurve(pickup2PoseEnd, new Pose(102, 82), scorePose))
+        // score5
+        score5 = follower.pathBuilder()
+                .addPath(new BezierCurve(pickup2PoseEnd, new Pose(106, 82), scorePose))
                 .setLinearHeadingInterpolation(pickup2PoseEnd.getHeading(), scorePose.getHeading())
                 .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_RED_NEAR))
                 .build();
@@ -196,7 +174,7 @@ public class RedCloseAuto extends OpMode {
                 }
                 break;
 
-            // === SCORE 2 (callback preps launcher at 30%) ===
+            // === SCORE 2 ===
             case 6: // Arrived → launch
                 if (!follower.isBusy()) {
                     launcher.setState(Launcher.LauncherState.LAUNCH);
@@ -224,7 +202,7 @@ public class RedCloseAuto extends OpMode {
                 }
                 break;
 
-            // === SCORE 3 (callback preps launcher at 30%) ===
+            // === SCORE 3 ===
             case 10: // Arrived → launch
                 if (!follower.isBusy()) {
                     launcher.setState(Launcher.LauncherState.LAUNCH);
@@ -252,78 +230,50 @@ public class RedCloseAuto extends OpMode {
                 }
                 break;
 
-            // === SCORE 4 (callback preps launcher at 30%) ===
+            // === SCORE 4 ===
             case 14: // Arrived → launch
                 if (!follower.isBusy()) {
                     launcher.setState(Launcher.LauncherState.LAUNCH);
                     setPathState(15);
                 }
                 break;
-            case 15: // Wait for all balls
+            case 15: // Wait for all balls, then go to pickup 2
                 if (actionTimer.getElapsedTime() > launchTime) {
-                    follower.followPath(openGateStartGrab3, 1.0, true);
+                    follower.followPath(pickup2, 1, false);
                     setPathState(16);
                 }
                 break;
 
-            // === OPEN GATE GRAB 3 ===
+            // === PICKUP 2 ===
             case 16:
                 if (!follower.isBusy()) {
-                    follower.followPath(openGateEndGrab3, grabSpeed, true);
+                    follower.followPath(pickup2Path, pickupSpeed, true);
                     setPathState(17);
                 }
                 break;
-            case 17: // Wait for pickup
-                if (!follower.isBusy() && actionTimer.getElapsedTime() > grabTime) {
-                    follower.followPath(score5, 1.0, true);
+            case 17:
+                if (!follower.isBusy()) {
+                    follower.followPath(score5, 1, true);
                     setPathState(18);
                 }
                 break;
 
-            // === SCORE 5 (callback preps launcher at 30%) ===
+            // === SCORE 5 ===
             case 18: // Arrived → launch
                 if (!follower.isBusy()) {
                     launcher.setState(Launcher.LauncherState.LAUNCH);
                     setPathState(19);
                 }
                 break;
-            case 19: // Wait for all balls
+            case 19: // Wait for all balls, then leave
                 if (actionTimer.getElapsedTime() > launchTime) {
-                    follower.followPath(pickup2, 1, false);
+                    follower.followPath(leave, 1, true);
                     setPathState(20);
                 }
                 break;
 
-            // === PICKUP 2 ===
-            case 20:
-                if (!follower.isBusy()) {
-                    follower.followPath(pickup2Path, pickupSpeed, true);
-                    setPathState(21);
-                }
-                break;
-            case 21:
-                if (!follower.isBusy()) {
-                    follower.followPath(score6, 1, true);
-                    setPathState(22);
-                }
-                break;
-
-            // === SCORE 6 (callback preps launcher at 30%) ===
-            case 22: // Arrived → launch
-                if (!follower.isBusy()) {
-                    launcher.setState(Launcher.LauncherState.LAUNCH);
-                    setPathState(23);
-                }
-                break;
-            case 23: // Wait for all balls, then leave
-                if (actionTimer.getElapsedTime() > launchTime) {
-                    follower.followPath(leave, 1, true);
-                    setPathState(24);
-                }
-                break;
-
             // === LEAVE ===
-            case 24:
+            case 20:
                 if (!follower.isBusy()) {
                     setPathState(-1);
                     requestOpModeStop();

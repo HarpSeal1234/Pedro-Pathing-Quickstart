@@ -301,10 +301,12 @@ public class BlueNearTele extends LinearOpMode {
 
 
 
-            if (targetOuttakeVelocity < 1800) {
-                hoodPos = 0.5;
-            } else if (targetOuttakeVelocity >= 1800) {
-                hoodPos = 0.35;
+            // Hood: interpolate linearly based on distance to goal
+            // Near (~45 in) → 0.62, Far (~130 in) → 0.35
+            // hoodPos = 0.62 - (0.62-0.35)/(130-45) * (distance - 45)
+            {
+                double d = getRobotToGoalDistance();
+                hoodPos = Range.clip(0.62 - (0.27 / 85.0) * (d - 45), 0.35, 0.62);
             }
 
             hoodServo.setPosition(Range.clip(hoodPos,HOOD_MIN_POS,HOOD_MAX_POS));
@@ -505,6 +507,7 @@ public class BlueNearTele extends LinearOpMode {
     private void initMotorOne(double kP, double kI, double kD, double F, double position) {
         outtake1 = hardwareMap.get(DcMotorEx.class, "outtake1");
         outtake1.setDirection(DcMotorEx.Direction.FORWARD);
+        outtake1.setVelocityPIDFCoefficients(kP, kI, kD, F);
         outtake1.setPower(outtakeZeroPower);
         outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         outtake1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -515,6 +518,7 @@ public class BlueNearTele extends LinearOpMode {
     private void initMotorTwo(double kP, double kI, double kD, double F, double position) {
         outtake2 = hardwareMap.get(DcMotorEx.class, "outtake2");
         outtake2.setDirection(DcMotorEx.Direction.REVERSE);
+        outtake2.setVelocityPIDFCoefficients(kP, kI, kD, F);
         outtake2.setPower(outtakeZeroPower);
         outtake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         outtake2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -524,7 +528,8 @@ public class BlueNearTele extends LinearOpMode {
 
     public void telemetry() {
         telemetry.addData("Status", "Run Time: " + runtime.toString());
-//        telemetry.addData("")
+        telemetry.addData("distance to goal", getRobotToGoalDistance());
+        telemetry.addData("autoUpdate", autoUpdate);
         telemetry.addData("turretpos",turretPos);
         telemetry.addData("turretError", Math.toDegrees(turretError));
         telemetry.addData("angle to goal", Math.toDegrees(angleToGoal));
@@ -541,7 +546,6 @@ public class BlueNearTele extends LinearOpMode {
         telemetry.addData("Outtake 2 power", outtake2.getPower());
         telemetry.addData("Outtake 1 Velocity", outtake1.getVelocity());
         telemetry.addData("Outtake 2 Velocity", outtake2.getVelocity());
-        telemetry.addData("blocker", turretPos);
     }
 }
 
