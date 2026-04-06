@@ -139,6 +139,7 @@ public class BlueNearTele extends LinearOpMode {
     INTAKE_STATUS intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
     private Servo pivot;
     private BallDetector ballDetector;
+    private LimelightLocalizer limelightLocalizer;
 
     ElapsedTime intakeTimer = new ElapsedTime();
 
@@ -169,6 +170,9 @@ public class BlueNearTele extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             follower.update();
+
+            // Limelight pose correction — corrects X, Y, heading when AprilTags visible
+            limelightLocalizer.update(follower);
 
             Pose pose = follower.getPose();
             double heading = pose.getHeading(); // Radians
@@ -352,6 +356,11 @@ public class BlueNearTele extends LinearOpMode {
 //        initCamera();
         initIntake();
         initTurret();
+
+        // Initialize Limelight for AprilTag pose correction
+        limelightLocalizer = new LimelightLocalizer();
+        limelightLocalizer.init(hardwareMap, 180); // Blue Near starts facing 180°
+        limelightLocalizer.setValidTagIds(20); // Only accept tag 20 for blue alliance
     }
     private void initAprilTag() {
 
@@ -537,6 +546,20 @@ public class BlueNearTele extends LinearOpMode {
         telemetry.addData("y pos",follower.getPose().getY());
         telemetry.addData("robot heading", Math.toDegrees(follower.getHeading()));
         telemetry.addData("hood",hoodPos);
+        // Limelight telemetry
+        telemetry.addData("LL valid", limelightLocalizer.isLastResultValid());
+        telemetry.addData("LL reject", limelightLocalizer.getLastRejectReason());
+        telemetry.addData("LL tags", limelightLocalizer.getLastTagCount());
+        telemetry.addData("LL latency ms", limelightLocalizer.getLastLatencyMs());
+        telemetry.addData("LL heading sent", limelightLocalizer.getLastImuHeadingDeg());
+        telemetry.addData("LL raw meters", "x=%.3f y=%.3f",
+                limelightLocalizer.getLastRawX(), limelightLocalizer.getLastRawY());
+        if (limelightLocalizer.getLastPose() != null) {
+            Pose llPose = limelightLocalizer.getLastPose();
+            telemetry.addData("LL x", llPose.getX());
+            telemetry.addData("LL y", llPose.getY());
+            telemetry.addData("LL heading", Math.toDegrees(llPose.getHeading()));
+        }
         telemetry.addData("Intake Power", "Intake Power: " + intake1Power);
         telemetry.addData("Target Velocity", targetOuttakeVelocity);
         telemetry.addData("Intake state", intakeStatus);

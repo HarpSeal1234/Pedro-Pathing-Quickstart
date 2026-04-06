@@ -137,6 +137,7 @@ public class RedFarTele extends LinearOpMode {
     INTAKE_STATUS intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
     private Servo pivot;
     private BallDetector ballDetector;
+    private LimelightLocalizer limelightLocalizer;
 
     ElapsedTime intakeTimer = new ElapsedTime();
 
@@ -166,6 +167,8 @@ public class RedFarTele extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             follower.update();
+
+            limelightLocalizer.update(follower);
 
             Pose pose = follower.getPose();
             double heading = pose.getHeading(); // Radians
@@ -249,7 +252,7 @@ public class RedFarTele extends LinearOpMode {
                         + CONSTANTS.TURRET_OFFSET_LEFT * Math.cos(robotHeading);
 
                 // 2. Angle from turret position to goal
-                angleToGoal = Math.atan2(turretX - RED_GOAL_POSITION_X, RED_GOAL_POSITION_Y - turretY) + Math.PI / 2;
+                angleToGoal = Math.atan2(RED_GOAL_POSITION_Y - turretY, RED_GOAL_POSITION_X - turretX);
                 turretError = angleToGoal - robotHeading;
 
                 while (turretError > Math.PI) turretError -= 2 * Math.PI;
@@ -260,7 +263,7 @@ public class RedFarTele extends LinearOpMode {
 // Clamp turret angle to ±135° to prevent over-rotation
                 errorDegrees = Range.clip(errorDegrees, -MAX_TURRET_ANGLE, MAX_TURRET_ANGLE);
 
-                turretPos = 0.5 + (errorDegrees * TURRET_POSITION_PER_DEGREE);
+                turretPos = 0.5 - (errorDegrees * TURRET_POSITION_PER_DEGREE);
                 turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
             }
 
@@ -348,6 +351,10 @@ public class RedFarTele extends LinearOpMode {
 //        initCamera();
         initIntake();
         initTurret();
+
+        limelightLocalizer = new LimelightLocalizer();
+        limelightLocalizer.init(hardwareMap, 0); // Red Far starts facing 0°
+        limelightLocalizer.setValidTagIds(24); // Only accept tag 24 for red alliance
     }
     private void initAprilTag() {
 

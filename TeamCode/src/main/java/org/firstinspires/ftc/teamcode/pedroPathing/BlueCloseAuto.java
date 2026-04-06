@@ -18,7 +18,7 @@ public class BlueCloseAuto extends OpMode {
     private int pathState;
     private double launchTime = 1000;
 
-    private double grabTime = 1500;
+    private double grabTime = 1700;
     private double pickupSpeed = 0.9;
     private double grabSpeed = 0.6;
 
@@ -27,10 +27,10 @@ public class BlueCloseAuto extends OpMode {
     private final Pose scorePose = new Pose(50, 80, Math.toRadians(180)); // Wheel touches launch triangle
     private final Pose pickup1PoseStart = new Pose(24, 55, Math.toRadians(180));
     private final Pose pickup1PoseEnd = new Pose(16, 55, Math.toRadians(180));
-    private final Pose openGateGrabStartPose = new Pose(16.5, 60, Math.toRadians(160));
-    private final Pose openGateGrabEndPose = new Pose(10, 60, Math.toRadians(160));
+    private final Pose openGateGrabStartPose = new Pose(16.5, 60, Math.toRadians(162));
+    private final Pose openGateGrabEndPose = new Pose(11, 60, Math.toRadians(162));
     private final Pose pickup2PoseStart = new Pose(40, 82, Math.toRadians(180));
-    private final Pose pickup2PoseEnd = new Pose(19, 82, Math.toRadians(180));
+    private final Pose pickup2PoseEnd = new Pose(18, 82, Math.toRadians(180));
     private final Pose leavePose = new Pose(36, 70, Math.toRadians(180));
 
 

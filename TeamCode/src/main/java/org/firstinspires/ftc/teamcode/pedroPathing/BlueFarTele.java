@@ -137,6 +137,7 @@ public class BlueFarTele extends LinearOpMode {
     INTAKE_STATUS intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
     private Servo pivot;
     private BallDetector ballDetector;
+    private LimelightLocalizer limelightLocalizer;
 
     ElapsedTime intakeTimer = new ElapsedTime();
 
@@ -167,6 +168,8 @@ public class BlueFarTele extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             follower.update();
+
+            limelightLocalizer.update(follower);
 
             Pose pose = follower.getPose();
             double heading = pose.getHeading(); // Radians
@@ -250,7 +253,7 @@ public class BlueFarTele extends LinearOpMode {
                         + CONSTANTS.TURRET_OFFSET_LEFT * Math.cos(robotHeading);
 
                 // 2. Angle from turret position to goal
-                angleToGoal = Math.atan2(turretX - BLUE_GOAL_POSITION_X, BLUE_GOAL_POSITION_Y - turretY) + Math.PI / 2;
+                angleToGoal = Math.atan2(BLUE_GOAL_POSITION_Y - turretY, BLUE_GOAL_POSITION_X - turretX);
                 turretError = angleToGoal - robotHeading;
 
                 while (turretError > Math.PI) turretError -= 2 * Math.PI;
@@ -261,7 +264,7 @@ public class BlueFarTele extends LinearOpMode {
 // Clamp turret angle to ±135° to prevent over-rotation
                 errorDegrees = Range.clip(errorDegrees, -MAX_TURRET_ANGLE, MAX_TURRET_ANGLE);
 
-                turretPos = 0.5 + (errorDegrees * TURRET_POSITION_PER_DEGREE);
+                turretPos = 0.5 - (errorDegrees * TURRET_POSITION_PER_DEGREE);
                 turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
             }
 
@@ -349,6 +352,10 @@ public class BlueFarTele extends LinearOpMode {
 //        initCamera();
         initIntake();
         initTurret();
+
+        limelightLocalizer = new LimelightLocalizer();
+        limelightLocalizer.init(hardwareMap, 180); // Blue Far starts facing 180°
+        limelightLocalizer.setValidTagIds(20); // Only accept tag 20 for blue alliance
     }
     private void initAprilTag() {
 

@@ -33,6 +33,8 @@ public class CONSTANTS {
 
     // Maximum turret rotation in degrees (left or right from center)
     public static final double MAX_TURRET_ANGLE = 135;
+    public static final double LIMELIGHT_APRIL_TAG_POS = 0.42;
+    public static final double LIMELIGHT_BALL_POS = 0.53;
     public static final double TURRET_POSITION_PER_DEGREE =0.0016798245614035089;
 
     public  static  final Pose BLUE_NEAR_TELE_START = new Pose(36, 70, Math.toRadians(180));

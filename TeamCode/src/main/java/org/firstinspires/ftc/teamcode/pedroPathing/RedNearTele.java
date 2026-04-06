@@ -136,6 +136,7 @@ public class RedNearTele extends LinearOpMode {
     INTAKE_STATUS intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
     private Servo pivot;
     private BallDetector ballDetector;
+    private LimelightLocalizer limelightLocalizer;
 
     ElapsedTime intakeTimer = new ElapsedTime();
 
@@ -165,6 +166,8 @@ public class RedNearTele extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             follower.update();
+
+            limelightLocalizer.update(follower);
 
             Pose pose = follower.getPose();
             double heading = pose.getHeading(); // Radians
@@ -248,7 +251,7 @@ public class RedNearTele extends LinearOpMode {
                         + CONSTANTS.TURRET_OFFSET_LEFT * Math.cos(robotHeading);
 
                 // 2. Angle from turret position to goal
-                angleToGoal = Math.atan2(turretX - RED_GOAL_POSITION_X, RED_GOAL_POSITION_Y - turretY) + Math.PI / 2;
+                angleToGoal = Math.atan2(RED_GOAL_POSITION_Y - turretY, RED_GOAL_POSITION_X - turretX);
                 turretError = angleToGoal - robotHeading;
 
                 while (turretError > Math.PI) turretError -= 2 * Math.PI;
@@ -259,7 +262,7 @@ public class RedNearTele extends LinearOpMode {
 // Clamp turret angle to ±135° to prevent over-rotation
                 errorDegrees = Range.clip(errorDegrees, -MAX_TURRET_ANGLE, MAX_TURRET_ANGLE);
 
-                turretPos = 0.5 + (errorDegrees * TURRET_POSITION_PER_DEGREE);
+                turretPos = 0.5 - (errorDegrees * TURRET_POSITION_PER_DEGREE);
                 turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
             }
 
@@ -347,6 +350,10 @@ public class RedNearTele extends LinearOpMode {
 //        initCamera();
         initIntake();
         initTurret();
+
+        limelightLocalizer = new LimelightLocalizer();
+        limelightLocalizer.init(hardwareMap, 0); // Red Near starts facing 0°
+        limelightLocalizer.setValidTagIds(24); // Only accept tag 11 for red alliance
     }
     private void initAprilTag() {
 
@@ -532,6 +539,20 @@ public class RedNearTele extends LinearOpMode {
         telemetry.addData("y pos",follower.getPose().getY());
         telemetry.addData("robot heading", Math.toDegrees(follower.getHeading()));
         telemetry.addData("hood",hoodPos);
+        // Limelight telemetry
+        telemetry.addData("LL valid", limelightLocalizer.isLastResultValid());
+        telemetry.addData("LL reject", limelightLocalizer.getLastRejectReason());
+        telemetry.addData("LL tags", limelightLocalizer.getLastTagCount());
+        telemetry.addData("LL latency ms", limelightLocalizer.getLastLatencyMs());
+        telemetry.addData("LL heading sent", limelightLocalizer.getLastImuHeadingDeg());
+        telemetry.addData("LL raw meters", "x=%.3f y=%.3f",
+                limelightLocalizer.getLastRawX(), limelightLocalizer.getLastRawY());
+        if (limelightLocalizer.getLastPose() != null) {
+            Pose llPose = limelightLocalizer.getLastPose();
+            telemetry.addData("LL x", llPose.getX());
+            telemetry.addData("LL y", llPose.getY());
+            telemetry.addData("LL heading", Math.toDegrees(llPose.getHeading()));
+        }
         telemetry.addData("Intake Power", "Intake Power: " + intake1Power);
         telemetry.addData("Target Velocity", targetOuttakeVelocity);
         telemetry.addData("Intake state", intakeStatus);

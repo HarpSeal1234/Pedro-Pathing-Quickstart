@@ -171,7 +171,7 @@ public class Launcher {
                 + CONSTANTS.TURRET_OFFSET_LEFT * Math.cos(robotHeading);
 
         // Angle from turret position to goal
-        double angleToGoal = Math.atan2(turretX - BLUE_GOAL_POSITION_X, BLUE_GOAL_POSITION_Y - turretY) + Math.PI / 2;
+        double angleToGoal = Math.atan2(BLUE_GOAL_POSITION_Y - turretY, BLUE_GOAL_POSITION_X - turretX);
 
         double turretError = angleToGoal - robotHeading;
         while (turretError > Math.PI) turretError -= 2 * Math.PI;
@@ -182,7 +182,7 @@ public class Launcher {
 // Clamp turret angle to ±135° to prevent over-rotation
         errorDegrees = Range.clip(errorDegrees, -MAX_TURRET_ANGLE, MAX_TURRET_ANGLE);
 
-        turretPos = 0.5 + (errorDegrees * TURRET_POSITION_PER_DEGREE);
+        turretPos = 0.5 - (errorDegrees * TURRET_POSITION_PER_DEGREE);
         turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
     }
 
