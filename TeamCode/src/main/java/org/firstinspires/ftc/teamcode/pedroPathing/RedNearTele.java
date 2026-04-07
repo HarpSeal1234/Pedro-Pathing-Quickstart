@@ -136,6 +136,7 @@ public class RedNearTele extends LinearOpMode {
     INTAKE_STATUS intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
     private Servo pivot;
     private BallDetector ballDetector;
+    private LimelightLocalizer limelightLocalizer;
 
     ElapsedTime intakeTimer = new ElapsedTime();
 
@@ -165,6 +166,8 @@ public class RedNearTele extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             follower.update();
+
+            limelightLocalizer.update(follower);
 
             Pose pose = follower.getPose();
             double heading = pose.getHeading(); // Radians
@@ -248,7 +251,7 @@ public class RedNearTele extends LinearOpMode {
                         + CONSTANTS.TURRET_OFFSET_LEFT * Math.cos(robotHeading);
 
                 // 2. Angle from turret position to goal
-                angleToGoal = Math.atan2(turretX - RED_GOAL_POSITION_X, RED_GOAL_POSITION_Y - turretY) + Math.PI / 2;
+                angleToGoal = Math.atan2(RED_GOAL_POSITION_Y - turretY, RED_GOAL_POSITION_X - turretX);
                 turretError = angleToGoal - robotHeading;
 
                 while (turretError > Math.PI) turretError -= 2 * Math.PI;
@@ -259,7 +262,7 @@ public class RedNearTele extends LinearOpMode {
 // Clamp turret angle to ±135° to prevent over-rotation
                 errorDegrees = Range.clip(errorDegrees, -MAX_TURRET_ANGLE, MAX_TURRET_ANGLE);
 
-                turretPos = 0.5 + (errorDegrees * TURRET_POSITION_PER_DEGREE);
+                turretPos = 0.5 - (errorDegrees * TURRET_POSITION_PER_DEGREE);
                 turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
             }
 
@@ -297,10 +300,11 @@ public class RedNearTele extends LinearOpMode {
 
 
 
-            if (targetOuttakeVelocity < 1800) {
-                hoodPos = 0.5;
-            } else if (targetOuttakeVelocity >= 1800) {
-                hoodPos = 0.35;
+            // Hood: interpolate linearly based on distance to goal
+            // Near (~45 in) → 0.62, Far (~130 in) → 0.35
+            {
+                double d = getRobotToGoalDistance();
+                hoodPos = Range.clip(0.62 - (0.27 / 85.0) * (d - 45), 0.35, 0.62);
             }
 
             hoodServo.setPosition(Range.clip(hoodPos,HOOD_MIN_POS,HOOD_MAX_POS));
@@ -346,6 +350,10 @@ public class RedNearTele extends LinearOpMode {
 //        initCamera();
         initIntake();
         initTurret();
+
+        limelightLocalizer = new LimelightLocalizer();
+        limelightLocalizer.init(hardwareMap, 0); // Red Near starts facing 0°
+        limelightLocalizer.setValidTagIds(24); // Only accept tag 11 for red alliance
     }
     private void initAprilTag() {
 
@@ -501,6 +509,7 @@ public class RedNearTele extends LinearOpMode {
     private void initMotorOne(double kP, double kI, double kD, double F, double position) {
         outtake1 = hardwareMap.get(DcMotorEx.class, "outtake1");
         outtake1.setDirection(DcMotorEx.Direction.FORWARD);
+        outtake1.setVelocityPIDFCoefficients(kP, kI, kD, F);
         outtake1.setPower(outtakeZeroPower);
         outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         outtake1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -511,6 +520,7 @@ public class RedNearTele extends LinearOpMode {
     private void initMotorTwo(double kP, double kI, double kD, double F, double position) {
         outtake2 = hardwareMap.get(DcMotorEx.class, "outtake2");
         outtake2.setDirection(DcMotorEx.Direction.REVERSE);
+        outtake2.setVelocityPIDFCoefficients(kP, kI, kD, F);
         outtake2.setPower(outtakeZeroPower);
         outtake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         outtake2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -520,7 +530,8 @@ public class RedNearTele extends LinearOpMode {
 
     public void telemetry() {
         telemetry.addData("Status", "Run Time: " + runtime.toString());
-//        telemetry.addData("")
+        telemetry.addData("distance to goal", getRobotToGoalDistance());
+        telemetry.addData("autoUpdate", autoUpdate);
         telemetry.addData("turretpos",turretPos);
         telemetry.addData("turretError", Math.toDegrees(turretError));
         telemetry.addData("angle to goal", Math.toDegrees(angleToGoal));
@@ -528,6 +539,20 @@ public class RedNearTele extends LinearOpMode {
         telemetry.addData("y pos",follower.getPose().getY());
         telemetry.addData("robot heading", Math.toDegrees(follower.getHeading()));
         telemetry.addData("hood",hoodPos);
+        // Limelight telemetry
+        telemetry.addData("LL valid", limelightLocalizer.isLastResultValid());
+        telemetry.addData("LL reject", limelightLocalizer.getLastRejectReason());
+        telemetry.addData("LL tags", limelightLocalizer.getLastTagCount());
+        telemetry.addData("LL latency ms", limelightLocalizer.getLastLatencyMs());
+        telemetry.addData("LL heading sent", limelightLocalizer.getLastImuHeadingDeg());
+        telemetry.addData("LL raw meters", "x=%.3f y=%.3f",
+                limelightLocalizer.getLastRawX(), limelightLocalizer.getLastRawY());
+        if (limelightLocalizer.getLastPose() != null) {
+            Pose llPose = limelightLocalizer.getLastPose();
+            telemetry.addData("LL x", llPose.getX());
+            telemetry.addData("LL y", llPose.getY());
+            telemetry.addData("LL heading", Math.toDegrees(llPose.getHeading()));
+        }
         telemetry.addData("Intake Power", "Intake Power: " + intake1Power);
         telemetry.addData("Target Velocity", targetOuttakeVelocity);
         telemetry.addData("Intake state", intakeStatus);

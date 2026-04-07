@@ -70,9 +70,9 @@ public class RedFarAuto extends OpMode {
                 .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_RED_FAR))
                 .build();
 
-        // pickup2: Switch to pickup mode mid-path
+        // pickup2: Switch to pickup mode mid-path — cubic Bezier stays high to avoid Y=0 wall
         pickup2 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose, new Pose(114, 20), pickup2PoseStart))
+                .addPath(new BezierCurve(scorePose, new Pose(110, 20), new Pose(128, 16), pickup2PoseStart))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2PoseStart.getHeading())
                 .addParametricCallback(0.2, () -> launcher.setState(Launcher.LauncherState.PICKUP))
                 .build();
@@ -88,9 +88,9 @@ public class RedFarAuto extends OpMode {
                 .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_RED_FAR))
                 .build();
 
-        // pickup3: Switch to pickup mode mid-path
+        // pickup3: Switch to pickup mode mid-path — cubic Bezier stays high to avoid Y=0 wall
         pickup3 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose, new Pose(114, 20), pickup2PoseStart))
+                .addPath(new BezierCurve(scorePose, new Pose(110, 20), new Pose(128, 16), pickup2PoseStart))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2PoseStart.getHeading())
                 .addParametricCallback(0.2, () -> launcher.setState(Launcher.LauncherState.PICKUP))
                 .build();
@@ -106,9 +106,9 @@ public class RedFarAuto extends OpMode {
                 .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_RED_FAR))
                 .build();
 
-        // pickup4: Switch to pickup mode mid-path
+        // pickup4: Switch to pickup mode mid-path — cubic Bezier stays high to avoid Y=0 wall
         pickup4 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose, new Pose(114, 20), pickup2PoseStart))
+                .addPath(new BezierCurve(scorePose, new Pose(110, 20), new Pose(128, 16), pickup2PoseStart))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2PoseStart.getHeading())
                 .addParametricCallback(0.2, () -> launcher.setState(Launcher.LauncherState.PICKUP))
                 .build();
@@ -124,9 +124,9 @@ public class RedFarAuto extends OpMode {
                 .addParametricCallback(0.1, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_RED_FAR))
                 .build();
 
-        // pickup5: Switch to pickup mode mid-path
+        // pickup5: Switch to pickup mode mid-path — cubic Bezier stays high to avoid Y=0 wall
         pickup5 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose, new Pose(114, 20), pickup2PoseStart))
+                .addPath(new BezierCurve(scorePose, new Pose(110, 20), new Pose(128, 16), pickup2PoseStart))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2PoseStart.getHeading())
                 .addParametricCallback(0.2, () -> launcher.setState(Launcher.LauncherState.PICKUP))
                 .build();

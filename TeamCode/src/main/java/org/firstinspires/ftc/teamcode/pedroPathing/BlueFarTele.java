@@ -137,6 +137,7 @@ public class BlueFarTele extends LinearOpMode {
     INTAKE_STATUS intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
     private Servo pivot;
     private BallDetector ballDetector;
+    private LimelightLocalizer limelightLocalizer;
 
     ElapsedTime intakeTimer = new ElapsedTime();
 
@@ -167,6 +168,8 @@ public class BlueFarTele extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             follower.update();
+
+            limelightLocalizer.update(follower);
 
             Pose pose = follower.getPose();
             double heading = pose.getHeading(); // Radians
@@ -250,7 +253,7 @@ public class BlueFarTele extends LinearOpMode {
                         + CONSTANTS.TURRET_OFFSET_LEFT * Math.cos(robotHeading);
 
                 // 2. Angle from turret position to goal
-                angleToGoal = Math.atan2(turretX - BLUE_GOAL_POSITION_X, BLUE_GOAL_POSITION_Y - turretY) + Math.PI / 2;
+                angleToGoal = Math.atan2(BLUE_GOAL_POSITION_Y - turretY, BLUE_GOAL_POSITION_X - turretX);
                 turretError = angleToGoal - robotHeading;
 
                 while (turretError > Math.PI) turretError -= 2 * Math.PI;
@@ -261,7 +264,7 @@ public class BlueFarTele extends LinearOpMode {
 // Clamp turret angle to ±135° to prevent over-rotation
                 errorDegrees = Range.clip(errorDegrees, -MAX_TURRET_ANGLE, MAX_TURRET_ANGLE);
 
-                turretPos = 0.5 + (errorDegrees * TURRET_POSITION_PER_DEGREE);
+                turretPos = 0.5 - (errorDegrees * TURRET_POSITION_PER_DEGREE);
                 turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
             }
 
@@ -299,10 +302,11 @@ public class BlueFarTele extends LinearOpMode {
 
 
 
-            if (targetOuttakeVelocity < 1800) {
-                hoodPos = 0.5;
-            } else if (targetOuttakeVelocity >= 1800) {
-                hoodPos = 0.35;
+            // Hood: interpolate linearly based on distance to goal
+            // Near (~45 in) → 0.62, Far (~130 in) → 0.35
+            {
+                double d = getRobotToGoalDistance();
+                hoodPos = Range.clip(0.62 - (0.27 / 85.0) * (d - 45), 0.35, 0.62);
             }
 
             hoodServo.setPosition(Range.clip(hoodPos,HOOD_MIN_POS,HOOD_MAX_POS));
@@ -348,6 +352,10 @@ public class BlueFarTele extends LinearOpMode {
 //        initCamera();
         initIntake();
         initTurret();
+
+        limelightLocalizer = new LimelightLocalizer();
+        limelightLocalizer.init(hardwareMap, 180); // Blue Far starts facing 180°
+        limelightLocalizer.setValidTagIds(20); // Only accept tag 20 for blue alliance
     }
     private void initAprilTag() {
 
@@ -503,6 +511,7 @@ public class BlueFarTele extends LinearOpMode {
     private void initMotorOne(double kP, double kI, double kD, double F, double position) {
         outtake1 = hardwareMap.get(DcMotorEx.class, "outtake1");
         outtake1.setDirection(DcMotorEx.Direction.FORWARD);
+        outtake1.setVelocityPIDFCoefficients(kP, kI, kD, F);
         outtake1.setPower(outtakeZeroPower);
         outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         outtake1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -513,6 +522,7 @@ public class BlueFarTele extends LinearOpMode {
     private void initMotorTwo(double kP, double kI, double kD, double F, double position) {
         outtake2 = hardwareMap.get(DcMotorEx.class, "outtake2");
         outtake2.setDirection(DcMotorEx.Direction.REVERSE);
+        outtake2.setVelocityPIDFCoefficients(kP, kI, kD, F);
         outtake2.setPower(outtakeZeroPower);
         outtake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         outtake2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -522,7 +532,8 @@ public class BlueFarTele extends LinearOpMode {
 
     public void telemetry() {
         telemetry.addData("Status", "Run Time: " + runtime.toString());
-//        telemetry.addData("")
+        telemetry.addData("distance to goal", getRobotToGoalDistance());
+        telemetry.addData("autoUpdate", autoUpdate);
         telemetry.addData("turretpos",turretPos);
         telemetry.addData("turretError", Math.toDegrees(turretError));
         telemetry.addData("angle to goal", Math.toDegrees(angleToGoal));
