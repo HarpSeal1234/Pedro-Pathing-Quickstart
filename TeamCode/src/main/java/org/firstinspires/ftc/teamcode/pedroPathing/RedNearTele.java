@@ -262,7 +262,7 @@ public class RedNearTele extends LinearOpMode {
 // Clamp turret angle to ±135° to prevent over-rotation
                 errorDegrees = Range.clip(errorDegrees, -MAX_TURRET_ANGLE, MAX_TURRET_ANGLE);
 
-                turretPos = 0.5 - (errorDegrees * TURRET_POSITION_PER_DEGREE);
+                turretPos = TurretMapper.degreesToServoPos(errorDegrees);
                 turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
             }
 

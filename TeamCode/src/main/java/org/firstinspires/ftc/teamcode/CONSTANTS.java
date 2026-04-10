@@ -22,8 +22,8 @@ public class CONSTANTS {
     public static final double ROBOT_HALF_WIDTH = ROBOT_WIDTH_INCHES / 2.0;
     public static final double RED_GOAL_POSITION_X = 139; // 144 - 8
     public static final double RED_GOAL_POSITION_Y = 139; // 144 - 8
-    public final static double BLUE_GOAL_POSITION_X = 6;
-    public final static double BLUE_GOAL_POSITION_Y = 142;
+    public final static double BLUE_GOAL_POSITION_X = 1;
+    public final static double BLUE_GOAL_POSITION_Y = 141.5;
     // Turret offset from robot center (in inches, robot-local frame)
     // TURRET_OFFSET_FORWARD: positive = turret is in front of robot center
     // TURRET_OFFSET_LEFT: positive = turret is to the left of robot center
@@ -38,7 +38,7 @@ public class CONSTANTS {
     public static final double TURRET_POSITION_PER_DEGREE =0.0016798245614035089;
 
     public  static  final Pose BLUE_NEAR_TELE_START = new Pose(36, 70, Math.toRadians(180));
-    public  static  final Pose RED_NEAR_TELE_START = new Pose(108, 70, Math. toRadians(0));
+    public  static  final Pose RED_NEAR_TELE_START = new Pose(108, 70, Math.toRadians(0));
     public  static  final Pose BLUE_FAR_TELE_START = new Pose(44, 25, Math.toRadians(180));
     public static final Pose RED_FAR_TELE_START = new Pose(100, 25, Math.toRadians(0));
 }
