@@ -304,9 +304,13 @@ public class BlueFarTele extends LinearOpMode {
 
             // Hood: interpolate linearly based on distance to goal
             // Near (~45 in) → 0.62, Far (~130 in) → 0.35
+            // Only update when change is significant to prevent jitter from LL corrections
             {
                 double d = getRobotToGoalDistance();
-                hoodPos = Range.clip(0.62 - (0.27 / 85.0) * (d - 45), 0.35, 0.62);
+                double newHoodPos = Range.clip(0.62 - (0.27 / 85.0) * (d - 45), 0.35, 0.62);
+                if (Math.abs(newHoodPos - hoodPos) > 0.005) {
+                    hoodPos = newHoodPos;
+                }
             }
 
             hoodServo.setPosition(Range.clip(hoodPos,HOOD_MIN_POS,HOOD_MAX_POS));
