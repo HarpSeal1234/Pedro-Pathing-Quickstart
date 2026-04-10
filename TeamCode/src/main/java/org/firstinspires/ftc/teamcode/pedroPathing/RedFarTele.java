@@ -263,7 +263,7 @@ public class RedFarTele extends LinearOpMode {
 // Clamp turret angle to ±135° to prevent over-rotation
                 errorDegrees = Range.clip(errorDegrees, -MAX_TURRET_ANGLE, MAX_TURRET_ANGLE);
 
-                turretPos = 0.5 - (errorDegrees * TURRET_POSITION_PER_DEGREE);
+                turretPos = TurretMapper.degreesToServoPos(errorDegrees);
                 turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
             }
 
@@ -303,9 +303,13 @@ public class RedFarTele extends LinearOpMode {
 
             // Hood: interpolate linearly based on distance to goal
             // Near (~45 in) → 0.62, Far (~130 in) → 0.35
+            // Only update when change is significant to prevent jitter from LL corrections
             {
                 double d = getRobotToGoalDistance();
-                hoodPos = Range.clip(0.62 - (0.27 / 85.0) * (d - 45), 0.35, 0.62);
+                double newHoodPos = Range.clip(0.62 - (0.27 / 85.0) * (d - 45), 0.35, 0.62);
+                if (Math.abs(newHoodPos - hoodPos) > 0.005) {
+                    hoodPos = newHoodPos;
+                }
             }
 
             hoodServo.setPosition(Range.clip(hoodPos,HOOD_MIN_POS,HOOD_MAX_POS));

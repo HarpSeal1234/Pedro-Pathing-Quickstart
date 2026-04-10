@@ -69,6 +69,7 @@ public class LimelightLocalizer {
     private String initError = "";
     private double lastRawX = 0;
     private double lastRawY = 0;
+    private double lastYawDegrees = 0;
 
     /**
      * Initialize the Limelight 3A.
@@ -195,8 +196,9 @@ public class LimelightLocalizer {
             return;
         }
 
-        double pedroX = (limelightXMeters * METERS_TO_INCHES) + FIELD_OFFSET_INCHES;
-        double pedroY = (limelightYMeters * METERS_TO_INCHES) + FIELD_OFFSET_INCHES;
+        // LL +X = Pedro -Y, LL +Y = Pedro +X
+        double pedroX = (limelightYMeters * METERS_TO_INCHES) + FIELD_OFFSET_INCHES;
+        double pedroY = (-limelightXMeters * METERS_TO_INCHES) + FIELD_OFFSET_INCHES;
 
         // Sanity check: reject if position is outside the field
         if (pedroX < -12 || pedroX > 156 || pedroY < -12 || pedroY > 156) {
@@ -205,23 +207,20 @@ public class LimelightLocalizer {
             return;
         }
 
-        // Get the Limelight's heading from botpose
-        // Limelight yaw: degrees, FTC convention (0° = +X, CCW positive, [-180, 180])
-        // Pedro heading: radians, [0, 2π), CCW positive, 0 = +X
+        // Convert Limelight heading to Pedro heading
+        // LL yaw 0° = facing -Y in Pedro = 270° in Pedro. Both CCW-positive.
+        // Pedro heading = yawDegrees + 270
         YawPitchRollAngles angles = botpose.getOrientation();
         double yawDegrees = angles.getYaw(AngleUnit.DEGREES);
-        double headingRadians = Math.toRadians(yawDegrees);
-        // Normalize to [0, 2π) for Pedro
-        if (headingRadians < 0) {
-            headingRadians += 2 * Math.PI;
-        }
+        lastYawDegrees = yawDegrees;
+        double headingRadians = Math.toRadians(yawDegrees + 270);
 
         // Store for telemetry
         lastLimelightPose = new Pose(pedroX, pedroY, headingRadians);
         lastResultValid = true;
         lastRejectReason = "accepted";
 
-        // Correct the follower's pose — X, Y, and heading from Limelight
+        // Correct the follower's pose — X, Y, and heading
         follower.setPose(lastLimelightPose);
     }
 
@@ -290,6 +289,11 @@ public class LimelightLocalizer {
     /** @return raw Limelight X in meters (for debugging) */
     public double getLastRawX() {
         return lastRawX;
+    }
+
+    /** @return raw Limelight yaw in degrees (for debugging) */
+    public double getLastYawDegrees() {
+        return lastYawDegrees;
     }
 
     /** @return raw Limelight Y in meters (for debugging) */

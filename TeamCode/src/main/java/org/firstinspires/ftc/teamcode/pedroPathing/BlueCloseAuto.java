@@ -24,13 +24,13 @@ public class BlueCloseAuto extends OpMode {
 
     private Launcher launcher;
     private final Pose startPose = new Pose(15.5, 112.5, Math.toRadians(180));
-    private final Pose scorePose = new Pose(50, 80, Math.toRadians(180)); // Wheel touches launch triangle
-    private final Pose pickup1PoseStart = new Pose(24, 55, Math.toRadians(180));
-    private final Pose pickup1PoseEnd = new Pose(16, 55, Math.toRadians(180));
-    private final Pose openGateGrabStartPose = new Pose(16.5, 60, Math.toRadians(162));
-    private final Pose openGateGrabEndPose = new Pose(11, 60, Math.toRadians(162));
+    private final Pose scorePose = new Pose(50, 81, Math.toRadians(180)); // Wheel touches launch triangle
+    private final Pose pickup1PoseStart = new Pose(24, 52, Math.toRadians(180));
+    private final Pose pickup1PoseEnd = new Pose(16, 52, Math.toRadians(180));
+    private final Pose openGateGrabStartPose = new Pose(16.5, 60, Math.toRadians(160));
+    private final Pose openGateGrabEndPose = new Pose(10.5, 60, Math.toRadians(160));
     private final Pose pickup2PoseStart = new Pose(40, 82, Math.toRadians(180));
-    private final Pose pickup2PoseEnd = new Pose(18, 82, Math.toRadians(180));
+    private final Pose pickup2PoseEnd = new Pose(15, 82, Math.toRadians(180));
     private final Pose leavePose = new Pose(36, 70, Math.toRadians(180));
 
 
@@ -52,8 +52,9 @@ public class BlueCloseAuto extends OpMode {
 
     public void buildPaths() {
         // score1: Start launcher mid-path so it's ready by arrival
+        // Use BezierCurve to route above spike marks before curving down to score
         score1 = follower.pathBuilder()
-                .addPath(new BezierLine(startPose, scorePose))
+                .addPath(new BezierCurve(startPose, new Pose(50, 112), scorePose))
                 .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
                 .addParametricCallback(0.0, () -> launcher.setState(Launcher.LauncherState.START_LAUNCHING_BLUE_NEAR))
                 .build();
@@ -134,7 +135,7 @@ public class BlueCloseAuto extends OpMode {
 
         leave = follower.pathBuilder()
                 .addPath(new BezierCurve(scorePose, new Pose(37, 87), leavePose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), leavePose.getHeading())
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
     }
 

@@ -256,7 +256,7 @@ public class BlueNearTele extends LinearOpMode {
                         + CONSTANTS.TURRET_OFFSET_LEFT * Math.cos(robotHeading);
 
                 // 2. Angle from turret position to goal
-                angleToGoal = Math.atan2(turretX - BLUE_GOAL_POSITION_X, BLUE_GOAL_POSITION_Y - turretY) + Math.PI / 2;
+                angleToGoal = Math.atan2(BLUE_GOAL_POSITION_Y - turretY, BLUE_GOAL_POSITION_X - turretX);
                 turretError = angleToGoal - robotHeading;
 
                 while (turretError > Math.PI) turretError -= 2 * Math.PI;
@@ -267,7 +267,7 @@ public class BlueNearTele extends LinearOpMode {
 // Clamp turret angle to ±135° to prevent over-rotation
                 errorDegrees = Range.clip(errorDegrees, -MAX_TURRET_ANGLE, MAX_TURRET_ANGLE);
 
-                turretPos = 0.5 + (errorDegrees * TURRET_POSITION_PER_DEGREE);
+                turretPos = TurretMapper.degreesToServoPos(errorDegrees);
                 turretServo.setPosition(Range.clip(turretPos, 0.28, 0.694));
             }
 
@@ -307,10 +307,13 @@ public class BlueNearTele extends LinearOpMode {
 
             // Hood: interpolate linearly based on distance to goal
             // Near (~45 in) → 0.62, Far (~130 in) → 0.35
-            // hoodPos = 0.62 - (0.62-0.35)/(130-45) * (distance - 45)
+            // Only update when change is significant to prevent jitter from LL corrections
             {
                 double d = getRobotToGoalDistance();
-                hoodPos = Range.clip(0.62 - (0.27 / 85.0) * (d - 45), 0.35, 0.62);
+                double newHoodPos = Range.clip(0.62 - (0.27 / 85.0) * (d - 45), 0.35, 0.62);
+                if (Math.abs(newHoodPos - hoodPos) > 0.005) {
+                    hoodPos = newHoodPos;
+                }
             }
 
             hoodServo.setPosition(Range.clip(hoodPos,HOOD_MIN_POS,HOOD_MAX_POS));
@@ -544,7 +547,9 @@ public class BlueNearTele extends LinearOpMode {
         telemetry.addData("angle to goal", Math.toDegrees(angleToGoal));
         telemetry.addData("x pos",follower.getPose().getX());
         telemetry.addData("y pos",follower.getPose().getY());
-        telemetry.addData("robot heading", Math.toDegrees(follower.getHeading()));
+        double displayHeading = Math.toDegrees(follower.getHeading()) % 360;
+        if (displayHeading < 0) displayHeading += 360;
+        telemetry.addData("robot heading", displayHeading);
         telemetry.addData("hood",hoodPos);
         // Limelight telemetry
         telemetry.addData("LL valid", limelightLocalizer.isLastResultValid());
@@ -552,6 +557,7 @@ public class BlueNearTele extends LinearOpMode {
         telemetry.addData("LL tags", limelightLocalizer.getLastTagCount());
         telemetry.addData("LL latency ms", limelightLocalizer.getLastLatencyMs());
         telemetry.addData("LL heading sent", limelightLocalizer.getLastImuHeadingDeg());
+        telemetry.addData("LL raw yaw deg", limelightLocalizer.getLastYawDegrees());
         telemetry.addData("LL raw meters", "x=%.3f y=%.3f",
                 limelightLocalizer.getLastRawX(), limelightLocalizer.getLastRawY());
         if (limelightLocalizer.getLastPose() != null) {
