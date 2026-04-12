@@ -293,8 +293,8 @@ public class BlueNearTele extends LinearOpMode {
                 }
             } else if (gamepad2.b){
                 intake2Power = 0.0;
-                intake1Power = 0;
-                intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
+//                intake1Power = 0;
+//                intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
             }
 //
 //            if (gamepad1.dpad_up){
