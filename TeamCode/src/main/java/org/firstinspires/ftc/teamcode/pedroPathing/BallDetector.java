@@ -39,6 +39,7 @@ public class BallDetector {
     private boolean ballPresent = false;
     private int ballCount = 0;
     private final ElapsedTime debounceTimer = new ElapsedTime();
+    private double lastDistanceMM = 999.0; // cached reading from last update()
 
     // For tracking balls loaded vs launched
     private int ballsLoaded = 0;
@@ -76,6 +77,7 @@ public class BallDetector {
      */
     public void update() {
         double distance = distanceSensor.getDistance(DistanceUnit.MM);
+        lastDistanceMM = distance;
 
         if (debounceTimer.milliseconds() < debounceTimeMs) return;
 
@@ -125,9 +127,9 @@ public class BallDetector {
         return ballPresent;
     }
 
-    /** Get current distance reading in mm */
+    /** Get current distance reading in mm (cached from last update() call — no extra I2C read) */
     public double getDistanceMM() {
-        return distanceSensor.getDistance(DistanceUnit.MM);
+        return lastDistanceMM;
     }
 
     /** Reset all counters */

@@ -1,29 +1,18 @@
 package org.firstinspires.ftc.teamcode.pedroPathing; // make sure this aligns with class location
 
-import com.pedropathing.follower.Follower;
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
-import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 //@Disabled
 @Autonomous(name = "Red Close Auto", group = "OrcaRobotics")
-public class RedCloseAuto extends OpMode {
+public class RedCloseAuto extends AutoBase {
 
-    private Follower follower;
-    private Timer pathTimer, actionTimer, opmodeTimer,waitTimer;
+    { launchTime = 1100; } // override default
 
-    private int pathState;
-    private double launchTime = 1100;
-
-    private double grabTime = 1700;
-    private double pickupSpeed = 0.9;
-    private double grabSpeed = 0.6;
-
-    private Launcher launcher; //0.57 99.1 108.3  0.57 99 100
     private final Pose startPose = new Pose(128.5, 112.5, Math.toRadians(0));
     private final Pose scorePose = new Pose(94, 82, Math.toRadians(0)); // Wheel touches launch triangle, closer to goal
     private final Pose pickup1PoseStart = new Pose(104, 55, Math.toRadians(0));
@@ -34,7 +23,6 @@ public class RedCloseAuto extends OpMode {
     private final Pose pickup2PoseEnd = new Pose(129, 82, Math.toRadians(0));
     private final Pose openGateGrabPose2 = new Pose(132.5, 60.5, Math.toRadians(20));
     private final Pose leavePose = new Pose(108, 70, Math.toRadians(0));
-
 
     private PathChain
             score1,
@@ -52,7 +40,18 @@ public class RedCloseAuto extends OpMode {
             score5,
             leave;
 
-    public void buildPaths() {
+    @Override
+    protected Pose getStartPose() {
+        return startPose;
+    }
+
+    @Override
+    protected PIDFCoefficients getPidfCoefficients() {
+        return Constants.closePidfCoefficients;
+    }
+
+    @Override
+    protected void buildPaths() {
         // score1: Start launcher mid-path so it's ready by arrival
         score1 = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, scorePose))
@@ -140,7 +139,8 @@ public class RedCloseAuto extends OpMode {
                 .build();
     }
 
-    public void autonomousPathUpdate() {
+    @Override
+    protected void autonomousPathUpdate() {
         switch (pathState) {
             // === SCORE 1 ===
             case 0:
@@ -280,65 +280,5 @@ public class RedCloseAuto extends OpMode {
                 }
                 break;
         }
-    }
-
-    public void setPathState(int state) {
-        pathState = state;
-        pathTimer.resetTimer();
-        actionTimer.resetTimer();
-    }
-
-    /**
-     * This is the main loop of the OpMode, it will run repeatedly after clicking "Play".
-     **/
-    @Override
-    public void loop() {
-
-        // These loop the movements of the robot, these must be called continuously in order to work
-        follower.update();
-        autonomousPathUpdate();
-        launcher.update();
-        // Feedback to Driver Hub for debugging
-        telemetry.addData("path state", pathState);
-        telemetry.addData("x", follower.getPose().getX());
-        telemetry.addData("y", follower.getPose().getY());
-        telemetry.addData("heading", follower.getPose().getHeading());
-        telemetry.update();
-    }
-
-    /**
-     * This method is called once at the init of the OpMode.
-     **/
-    @Override
-    public void init() {
-        pathTimer = new Timer();
-        waitTimer = new Timer();
-        opmodeTimer = new Timer();
-        actionTimer = new Timer();
-        opmodeTimer.resetTimer();
-
-        follower = Constants.createFollower(hardwareMap);
-        launcher = new Launcher(hardwareMap, Constants.closePidfCoefficients);
-
-        buildPaths();
-        follower.setStartingPose(startPose);
-//        stop();
-    }
-
-    /**
-     * This method is called continuously after Init while waiting for "play".
-     **/
-    @Override
-    public void init_loop() {
-    }
-
-    /**
-     * This method is called once at the start of the OpMode.
-     * It runs all the setup actions, including building paths and starting the path system
-     **/
-    @Override
-    public void start() {
-        opmodeTimer.resetTimer();
-        setPathState(0);
     }
 }

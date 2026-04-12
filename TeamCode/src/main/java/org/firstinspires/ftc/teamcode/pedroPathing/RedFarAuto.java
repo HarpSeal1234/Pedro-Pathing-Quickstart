@@ -1,28 +1,18 @@
 package org.firstinspires.ftc.teamcode.pedroPathing; // make sure this aligns with class location
 
-import com.pedropathing.follower.Follower;
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
-import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 //@Disabled
 @Autonomous(name = "Red Far Auto", group = "OrcaRobotics")
-public class RedFarAuto extends OpMode {
+public class RedFarAuto extends AutoBase {
 
-    private Follower follower;
-    private Timer pathTimer, actionTimer, opmodeTimer, waitTimer;
+    { grabTime = 1200; pickupSpeed = 0.8; }
 
-    private int pathState;
-    private double launchTime = 1000;
-    private double grabTime = 1200;
-    private double pickupSpeed = 0.8;
-    private double grabSpeed = 0.6;
-
-    private Launcher launcher;
     // Mirrored from BlueFarAuto: X -> 144-X, Y same, heading -> 180°-heading
     private final Pose startPose = new Pose(88.2, 7.5, Math.toRadians(0));
     private final Pose pickup1PoseStart = new Pose(102, 36, Math.toRadians(0));
@@ -31,7 +21,6 @@ public class RedFarAuto extends OpMode {
     private final Pose pickup2PoseStart = new Pose(128, 9, Math.toRadians(0));
     private final Pose pickup2PoseEnd = new Pose(131, 9, Math.toRadians(0));
     private final Pose leavePose = new Pose(100, 25, Math.toRadians(0));
-
 
     private PathChain
             pickup1,
@@ -51,7 +40,18 @@ public class RedFarAuto extends OpMode {
             score6,
             leave;
 
-    public void buildPaths() {
+    @Override
+    protected Pose getStartPose() {
+        return startPose;
+    }
+
+    @Override
+    protected PIDFCoefficients getPidfCoefficients() {
+        return Constants.farPidfCoefficients;
+    }
+
+    @Override
+    protected void buildPaths() {
         // pickup1: Switch to pickup mode mid-path
         pickup1 = follower.pathBuilder()
                 .addPath(new BezierCurve(startPose, new Pose(88, 26), pickup1PoseStart))
@@ -148,7 +148,8 @@ public class RedFarAuto extends OpMode {
                 .build();
     }
 
-    public void autonomousPathUpdate() {
+    @Override
+    protected void autonomousPathUpdate() {
         switch (pathState) {
             // === SCORE 1 (preloaded balls — launch from start position) ===
             case 0:
@@ -317,52 +318,4 @@ public class RedFarAuto extends OpMode {
                 break;
         }
     }
-
-    public void setPathState(int state) {
-        pathState = state;
-        pathTimer.resetTimer();
-        actionTimer.resetTimer();
-    }
-
-    @Override
-    public void loop() {
-        follower.update();
-        autonomousPathUpdate();
-        launcher.update();
-
-        telemetry.addData("path state", pathState);
-        telemetry.addData("follower busy", follower.isBusy());
-        telemetry.addData("action timer", actionTimer.getElapsedTime());
-        telemetry.addData("Target Velocity", launcher.getOuttakeVelocity());
-        telemetry.addData("x", follower.getPose().getX());
-        telemetry.addData("y", follower.getPose().getY());
-        telemetry.addData("heading (deg)", Math.toDegrees(follower.getPose().getHeading()));
-        telemetry.update();
-    }
-
-    @Override
-    public void init() {
-        pathTimer = new Timer();
-        waitTimer = new Timer();
-        opmodeTimer = new Timer();
-        actionTimer = new Timer();
-        opmodeTimer.resetTimer();
-
-        follower = Constants.createFollower(hardwareMap);
-        launcher = new Launcher(hardwareMap, Constants.farPidfCoefficients);
-
-        buildPaths();
-        follower.setStartingPose(startPose);
-    }
-
-    @Override
-    public void init_loop() {
-    }
-
-    @Override
-    public void start() {
-        opmodeTimer.resetTimer();
-        setPathState(0);
-    }
 }
-
