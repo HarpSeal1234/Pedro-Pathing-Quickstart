@@ -164,8 +164,8 @@ public abstract class TeleBase extends LinearOpMode {
                 double d = getRobotToGoalDistance();
                 targetv = Range.clip(
                         (500.0 / (130 - 45)) * (getRobotToGoalDistance() - 45) + 1500,
-                        1000,
-                        FAR_OUTTAKE_VELOCITY
+                        1000, CLOSE_OUTTAKE_VELOCITY + 100
+                        /*FAR_OUTTAKE_VELOCITY*/
                 );
                 targetOuttakeVelocity = targetv;
             }
