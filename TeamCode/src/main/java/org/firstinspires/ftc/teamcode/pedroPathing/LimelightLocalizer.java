@@ -220,8 +220,12 @@ public class LimelightLocalizer {
         lastResultValid = true;
         lastRejectReason = "accepted";
 
-        // Correct the follower's pose — X, Y, and heading
-        follower.setPose(lastLimelightPose);
+        // Correct the follower's pose using offsets so the correction persists
+        // when the Limelight loses sight of the AprilTag.
+        // setPose() resets the localizer directly, but the Pinpoint hardware may
+        // overwrite it on the next update. setCurrentPoseWithOffset() stores the
+        // difference as a persistent offset that is applied on every future read.
+        follower.poseTracker.setCurrentPoseWithOffset(lastLimelightPose);
     }
 
     /** Set the minimum number of AprilTags required for a valid pose update. */
