@@ -12,7 +12,7 @@ public class CONSTANTS {
     public final static double HOOD_MAX_POS = 0.92;
     public final static double HOOD_MIN_POS = 0.2;
 
-    public final static double kP = 1.25;
+    public final static double kP = 2.6/*1.25*/;
     public final static double kI = 0.08;
     public final static double kD = 0.0;
 

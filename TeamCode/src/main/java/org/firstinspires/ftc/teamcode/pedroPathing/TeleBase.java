@@ -84,7 +84,7 @@ public abstract class TeleBase extends LinearOpMode {
     protected double outtakeZeroPower = 0.0;
     protected double motorOneCurrentVelocity = 0.0;
     protected double motorOneMaxVelocity = 2800;
-    protected double F = 32767 / motorOneMaxVelocity;
+    protected double F = 14.1/*32767 / motorOneMaxVelocity*/;
 
     protected double position = 5.0;
     protected double turretPos = 0.5;
@@ -95,7 +95,7 @@ public abstract class TeleBase extends LinearOpMode {
     protected double intake1Vel = 0.0;
     protected INTAKE_STATUS intakeStatus = INTAKE_STATUS.INTAKE_STOPPED;
     protected Servo pivot;
-    protected BallDetector ballDetector;
+//    protected BallDetector ballDetector;
     protected LimelightLocalizer limelightLocalizer;
 
     protected ElapsedTime intakeTimer = new ElapsedTime();
@@ -141,7 +141,7 @@ public abstract class TeleBase extends LinearOpMode {
             // Read intake velocity once per loop (avoid redundant I2C calls)
             intake1Vel = intake1.getVelocity();
 
-            ballDetector.update();
+//            ballDetector.update();
 
             // OUTTAKE
             if (gamepad2.left_bumper) {
@@ -163,7 +163,7 @@ public abstract class TeleBase extends LinearOpMode {
             if (autoUpdate && LaunchZoneChecker.isAnyWheelInLaunchZone(pose)) {
                 double d = getRobotToGoalDistance();
                 targetv = Range.clip(
-                        (500.0 / (130 - 45)) * (getRobotToGoalDistance() - 45) + 1500,
+                        (500.0 / (130 - 45)) * (getRobotToGoalDistance() - 45) + 1410/*1500*/,
                         1000, CLOSE_OUTTAKE_VELOCITY + 100
                         /*FAR_OUTTAKE_VELOCITY*/
                 );
@@ -218,9 +218,9 @@ public abstract class TeleBase extends LinearOpMode {
                 intake2Power = 1.0;
                 intake1Power = CLOSE_INTAKE_POWER;
                 intakeStatus = INTAKE_STATUS.INTAKE_STARTED;
-                if (targetOuttakeVelocity > 0) {
-                    ballDetector.resetLoadedCount();
-                }
+//                if (targetOuttakeVelocity > 0) {
+//                    ballDetector.resetLoadedCount();
+//                }
             } else if (gamepad2.b) {
                 intake2Power = 0.0;
                 intake1Power = 0;
@@ -232,7 +232,7 @@ public abstract class TeleBase extends LinearOpMode {
             // Only update when change is significant to prevent jitter from LL corrections
             {
                 double d = getRobotToGoalDistance();
-                double newHoodPos = Range.clip(0.62 - (0.27 / 85.0) * (d - 45), 0.35, 0.62);
+                double newHoodPos = Range.clip((0.62 - (0.27 / 85.0) * (d - 45))-0.12, 0.35, 0.62);
                 if (Math.abs(newHoodPos - hoodPos) > 0.005) {
                     hoodPos = newHoodPos;
                 }
@@ -266,7 +266,7 @@ public abstract class TeleBase extends LinearOpMode {
         initMotorTwo(kP, kI, kD, F, position);
         initDriveMotors();
         initAprilTag();
-        ballDetector = new BallDetector(hardwareMap);
+//        ballDetector = new BallDetector(hardwareMap);
         initIntake();
         initTurret();
 
